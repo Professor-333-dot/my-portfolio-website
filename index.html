@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Poko Flix</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: #fff;
+      margin: 0;
+      padding: 20px;
+      min-height: 100vh;
+    }
+
+    /* =========================================================
+       NETFLIX-STYLE INTRO OVERLAY
+       ========================================================= */
+    #introOverlay {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: radial-gradient(circle at center, #1f0507 0%, #090909 65%, #000 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      overflow: hidden;
+      transition: opacity 0.65s ease, visibility 0.65s ease;
+    }
+    #introOverlay.fade-out {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+    .skip-intro-btn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      width: auto;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      color: #ddd;
+      font-size: 13px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+    }
+    .skip-intro-btn:hover {
+      background: rgba(255, 255, 255, 0.16);
+      opacity: 1;
+    }
+    .intro-stage {
+      position: relative;
+      padding: 18px 34px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .intro-logo {
+      font-size: clamp(2.4rem, 7vw, 4.8rem);
+      font-weight: 900;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #e50914;
+      text-shadow:
+        0 0 18px rgba(229, 9, 20, 0.55),
+        0 0 46px rgba(229, 9, 20, 0.35),
+        0 4px 18px rgba(0, 0, 0, 0.9);
+      transform: scale(0.84);
+      opacity: 0;
+      animation: introLogoReveal 1.85s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      text-align: center;
+      user-select: none;
+    }
+    .intro-sub {
+      margin-top: 10px;
+      font-size: 12px;
+      letter-spacing: 0.34em;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.72);
+      opacity: 0;
+      animation: introSubReveal 1.85s ease 0.25s forwards;
+    }
+    .intro-sweep {
+      position: absolute;
+      top: -20%;
+      bottom: -20%;
+      width: 28px;
+      background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 120, 120, 0.28),
+        rgba(255, 255, 255, 0.75),
+        rgba(229, 9, 20, 0.35),
+        transparent
+      );
+      filter: blur(4px);
+      transform: skewX(-22deg);
+      animation: introSweepBeam 1.65s cubic-bezier(0.22, 1, 0.36, 1) 0.15s forwards;
+      pointer-events: none;
+    }
+
+    @keyframes introLogoReveal {
+      0% {
+        opacity: 0;
+        transform: scale(0.78);
+        letter-spacing: 0.04em;
+      }
+      45% {
+        opacity: 1;
+        transform: scale(1.04);
+        letter-spacing: 0.16em;
+      }
+      75% {
+        opacity: 1;
+        transform: scale(1);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1.06);
+      }
+    }
+    @keyframes introSubReveal {
+      0% { opacity: 0; transform: translateY(8px); }
+      50% { opacity: 0.85; transform: translateY(0); }
+      100% { opacity: 0.85; transform: translateY(0); }
+    }
+    @keyframes introSweepBeam {
+      0% { left: -15%; opacity: 0; }
+      25% { opacity: 1; }
+      85% { opacity: 1; }
+      100% { left: 115%; opacity: 0; }
+    }
+
+    /* =========================================================
+       LOGIN / APP REVEAL ANIMATION
+       ========================================================= */
+    .reveal-box {
+      animation: boxFadeUp 0.55s ease forwards;
+    }
+    @keyframes boxFadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(14px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* =========================================================
+       POKO FLIX STYLES
+       ========================================================= */
+    .box {
+      max-width: 1020px;
+      margin: 40px auto;
+      background: #1d1d1d;
+      padding: 24px;
+      border-radius: 8px;
+      border: 1px solid #2b2b2b;
+      box-shadow: 0 18px 45px rgba(0, 0, 0, 0.55);
+    }
+    input, select, button, textarea {
+      padding: 10px;
+      margin: 6px 0;
+      width: 100%;
+      border-radius: 4px;
+      border: 1px solid #444;
+      background: #2a2a2a;
+      color: #fff;
+      font-size: 14px;
+    }
+    button {
+      background: #e50914;
+      border: none;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    button:hover { opacity: 0.92; }
+    .btn-secondary {
+      background: #333;
+      border: 1px solid #555;
+    }
+    .btn-link {
+      display: block;
+      text-align: center;
+      text-decoration: none;
+      background: #333;
+      border: 1px solid #555;
+      color: #fff;
+      padding: 10px;
+      border-radius: 4px;
+      font-weight: bold;
+      margin-top: 6px;
+      font-size: 14px;
+    }
+    .row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .row > * {
+      flex: 1 1 180px;
+    }
+    .hidden {
+      display: none !important;
+    }
+    .section {
+      border-top: 1px solid #333;
+      padding-top: 15px;
+      margin-top: 15px;
+    }
+    .status-note {
+      font-size: 13px;
+      color: #bbb;
+      margin: 6px 0 10px;
+    }
+    #playerArea {
+      margin-top: 16px;
+      padding: 14px;
+      background: #151515;
+      border: 1px solid #333;
+      border-radius: 6px;
+    }
+    #playerArea h3 {
+      margin: 0 0 6px;
+    }
+    video, iframe {
+      width: 100%;
+      height: 420px;
+      margin-top: 8px;
+      background: #000;
+      border: none;
+      border-radius: 6px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(235px, 1fr));
+      gap: 15px;
+      margin-top: 16px;
+    }
+    .card {
+      background: #252525;
+      padding: 12px;
+      border-radius: 6px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      border: 1px solid #323232;
+    }
+    .card img {
+      width: 100%;
+      height: 260px;
+      object-fit: cover;
+      border-radius: 4px;
+      margin-bottom: 8px;
+      background: #181818;
+    }
+    .card h4 {
+      margin: 4px 0;
+      font-size: 15px;
+    }
+    .card p {
+      margin: 4px 0;
+      font-size: 12px;
+      color: #ccc;
+    }
+    .desc {
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      margin-top: 6px;
+      color: #aaa !important;
+    }
+    .badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: bold;
+      padding: 2px 7px;
+      border-radius: 4px;
+      background: #3a3a3a;
+      margin-bottom: 6px;
+      width: fit-content;
+    }
+    .badge-poko { background: #e50914; }
+    .badge-tmdb { background: #01b4e4; color: #051824; }
+    .badge-yt { background: #ff0000; }
+    .badge-google { background: #2b59c3; }
+  </style>
+</head>
+<body>
+  <!-- NETFLIX-STYLE INTRO SCREEN -->
+  <div id="introOverlay" aria-label="Poko Flix Intro">
+    <button class="skip-intro-btn" type="button" onclick="finishIntro(true)">Skip Intro</button>
+    <div class="intro-stage">
+      <div class="intro-sweep"></div>
+      <div class="intro-logo">POKO FLIX</div>
+      <div class="intro-sub">Stream Without Limits</div>
+    </div>
+  </div>
+
+  <!-- LOGIN BOX (SHOWN AFTER INTRO) -->
+  <div class="box hidden" id="loginBox">
+    <h2 style="margin-top:0; color:#e50914;">Poko Flix</h2>
+    <h3>Sign In</h3>
+    <input id="email" type="email" placeholder="Email" value="admin@pokoflix.com" />
+    <input id="password" type="password" placeholder="Password" value="admin123" />
+    <button type="button" onclick="login()">Login</button>
+    <p id="loginMsg" class="status-note"></p>
+  </div>
+
+  <!-- MAIN APP BOX -->
+  <div class="box hidden" id="appBox">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <h2 style="margin:0; color:#e50914;">Poko Flix</h2>
+      <button style="width:auto;" type="button" onclick="logout()">Logout</button>
+    </div>
+
+    <div id="adminPanel" class="section hidden">
+      <h3>Admin Panel</h3>
+      <h4>Create Simple User</h4>
+      <div class="row">
+        <input id="newUserEmail" placeholder="User Email" />
+        <input id="newUserPass" placeholder="Password (min 6 chars)" />
+        <button style="max-width:200px;" type="button" onclick="createUser()">Create User</button>
+      </div>
+      <p id="userMsg" class="status-note"></p>
+
+      <h4>Add Movie / Series (Direct MP4)</h4>
+      <input id="cTitle" placeholder="Title" />
+      <div class="row">
+        <select id="cCat">
+          <option value="movie">Movie</option>
+          <option value="series">Series</option>
+        </select>
+        <input id="cGenre" placeholder="Genre (e.g. Action, Sci-Fi)" />
+      </div>
+      <input id="cThumb" placeholder="Thumbnail URL (optional)" />
+      <input id="cVideo" placeholder="Direct Video MP4 URL" />
+      <textarea id="cDesc" placeholder="Description"></textarea>
+      <button type="button" onclick="addContent()">Publish Content</button>
+      <p id="contentMsg" class="status-note"></p>
+    </div>
+
+    <div class="section">
+      <h3>Search Poko Flix, TMDB Movies, YouTube &amp; Google</h3>
+      <div class="row">
+        <input id="searchQ" placeholder="Search movie, series, trailer, topic..." onkeydown="if(event.key==='Enter') searchContent()" />
+        <select id="searchCat">
+          <option value="all">All</option>
+          <option value="movie">Movies</option>
+          <option value="series">Series</option>
+        </select>
+        <button style="max-width:160px;" type="button" onclick="searchContent()">Search</button>
+      </div>
+      <p class="status-note" id="searchStatus">
+        Poko Flix library active. Add TMDB_API_KEY and/or YOUTUBE_API_KEY in &lt;script&gt; for automatic movie posters &amp; embedded trailers.
+      </p>
+    </div>
+
+    <div id="playerArea" class="hidden">
+      <h3 id="nowPlaying"></h3>
+      <p class="status-note" id="playerStatus"></p>
+      <video id="videoPlayer" controls class="hidden"></video>
+      <iframe
+        id="ytPlayer"
+        class="hidden"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen
+      ></iframe>
+    </div>
+
+    <div class="grid" id="contentGrid"></div>
+  </div>
+
+  <script>
+    // =========================================================
+    // CONFIGURATION
+    // =========================================================
+    const API = 'http://localhost:5000/api';
+    const TMDB_API_KEY = '';     // Paste TMDB v3 API key here
+    const YOUTUBE_API_KEY = '';  // Paste YouTube Data API v3 key here
+    const INTRO_DURATION_MS = 2300;
+
+    let token = localStorage.getItem('poko_token') || '';
+    let user = JSON.parse(localStorage.getItem('poko_user') || 'null');
+    let introDone = false;
+    let introTimer = null;
+    let renderedItems = [];
+
+    // Start intro timer on load
+    introTimer = setTimeout(() => finishIntro(false), INTRO_DURATION_MS);
+
+    function finishIntro(skipped = false) {
+      if (introDone) return;
+      introDone = true;
+      if (introTimer) clearTimeout(introTimer);
+
+      const overlay = document.getElementById('introOverlay');
+      if (overlay) {
+        overlay.classList.add('fade-out');
+      }
+
+      const delay = skipped ? 0 : 450;
+      setTimeout(() => {
+        if (token && user) {
+          showApp();
+        } else {
+          const loginBox = document.getElementById('loginBox');
+          loginBox.classList.remove('hidden');
+          loginBox.classList.add('reveal-box');
+        }
+      }, delay);
+    }
+
+    function escapeHtml(str = '') {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    async function login() {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const msgEl = document.getElementById('loginMsg');
+      msgEl.innerText = 'Signing in...';
+
+      try {
+        const res = await fetch(API + '/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+        if (!data.success) {
+          msgEl.innerText = data.message || 'Login failed';
+          return;
+        }
+        token = data.token;
+        user = data.user;
+        localStorage.setItem('poko_token', token);
+        localStorage.setItem('poko_user', JSON.stringify(user));
+        msgEl.innerText = '';
+        showApp();
+      } catch (err) {
+        msgEl.innerText = 'Could not reach Poko Flix server (http://localhost:5000).';
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem('poko_token');
+      localStorage.removeItem('poko_user');
+      location.reload();
+    }
+
+    function showApp() {
+      document.getElementById('loginBox').classList.add('hidden');
+      const appBox = document.getElementById('appBox');
+      appBox.classList.remove('hidden');
+      appBox.classList.add('reveal-box');
+      if (user && user.role === 'admin') {
+        document.getElementById('adminPanel').classList.remove('hidden');
+      }
+      loadContent();
+    }
+
+    async function createUser() {
+      const email = document.getElementById('newUserEmail').value;
+      const password = document.getElementById('newUserPass').value;
+      const msgEl = document.getElementById('userMsg');
+      try {
+        const res = await fetch(API + '/auth/admin/create-user', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token
+          },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+        msgEl.innerText = data.message || '';
+      } catch (err) {
+        msgEl.innerText = 'Failed to create user.';
+      }
+    }
+
+    async function addContent() {
+      const msgEl = document.getElementById('contentMsg');
+      const body = {
+        title: document.getElementById('cTitle').value,
+        category: document.getElementById('cCat').value,
+        genre: document.getElementById('cGenre').value,
+        thumbnailUrl: document.getElementById('cThumb').value,
+        videoUrl: document.getElementById('cVideo').value,
+        description: document.getElementById('cDesc').value
+      };
+      try {
+        const res = await fetch(API + '/content', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token
+          },
+          body: JSON.stringify(body)
+        });
+        const data = await res.json();
+        msgEl.innerText = data.message || '';
+        loadContent();
+      } catch (err) {
+        msgEl.innerText = 'Failed to publish content.';
+      }
+    }
+
+    async function loadContent() {
+      try {
+        const res = await fetch(API + '/content', {
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        const data = await res.json();
+        const items = (data.items || []).map(item => ({
+          ...item,
+          source: 'Poko Flix',
+          actionType: 'mp4'
+        }));
+        renderCards(items);
+      } catch (err) {
+        document.getElementById('searchStatus').innerText =
+          'Backend offline — search still works with TMDB/YouTube/Google links.';
+      }
+    }
+
+    async function searchContent() {
+      const rawQ = document.getElementById('searchQ').value.trim();
+      const q = encodeURIComponent(rawQ);
+      const category = document.getElementById('searchCat').value;
+      const statusEl = document.getElementById('searchStatus');
+
+      let localItems = [];
+      try {
+        const res = await fetch(`${API}/content/search?q=${q}&category=${encodeURIComponent(category)}`, {
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        const data = await res.json();
+        localItems = (data.results || []).map(item => ({
+          ...item,
+          source: 'Poko Flix',
+          actionType: 'mp4'
+        }));
+      } catch (err) {
+        // Ignore local backend error if offline
+      }
+
+      if (!rawQ) {
+        statusEl.innerText = 'Showing Poko Flix library items.';
+        renderCards(localItems);
+        return;
+      }
+
+      const combined = [...localItems];
+      const activeSources = [];
+      if (localItems.length) activeSources.push('Poko Flix');
+
+      if (TMDB_API_KEY) {
+        try {
+          const tmdbRes = await fetch(
+            `https://api.themoviedb.org/3/search/multi?api_key=${encodeURIComponent(TMDB_API_KEY)}&query=${q}&include_adult=false&page=1`
+          );
+          const tmdbData = await tmdbRes.json();
+          const tmdbResults = (tmdbData.results || [])
+            .filter(r => r.media_type === 'movie' || r.media_type === 'tv')
+            .filter(r => category === 'all' || (category === 'movie' && r.media_type === 'movie') || (category === 'series' && r.media_type === 'tv'))
+            .slice(0, 6);
+
+          tmdbResults.forEach(r => {
+            const title = r.title || r.name || 'Untitled';
+            const year = (r.release_date || r.first_air_date || '').slice(0, 4);
+            combined.push({
+              source: 'TMDB',
+              title,
+              category: r.media_type === 'tv' ? 'series' : 'movie',
+              genre: year ? `Released ${year}` : 'TMDB Catalog',
+              description: r.overview || 'No description available.',
+              thumbnailUrl: r.poster_path ? `https://image.tmdb.org/t/p/w500${r.poster_path}` : '',
+              tmdbId: r.id,
+              mediaType: r.media_type,
+              actionType: 'tmdb-trailer'
+            });
+          });
+          activeSources.push('TMDB');
+        } catch (err) {
+          console.error('TMDB search failed:', err);
+        }
+      }
+
+      if (YOUTUBE_API_KEY) {
+        try {
+          const ytRes = await fetch(
+            `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=4&q=${q}&key=${encodeURIComponent(YOUTUBE_API_KEY)}`
+          );
+          const ytData = await ytRes.json();
+          (ytData.items || []).forEach(v => {
+            combined.push({
+              source: 'YouTube',
+              title: v.snippet.title,
+              category: 'video',
+              genre: v.snippet.channelTitle,
+              description: v.snippet.description || '',
+              thumbnailUrl: v.snippet.thumbnails?.high?.url || v.snippet.thumbnails?.medium?.url || '',
+              videoId: v.id.videoId,
+              actionType: 'youtube-embed'
+            });
+          });
+          activeSources.push('YouTube');
+        } catch (err) {
+          console.error('YouTube search failed:', err);
+        }
+      }
+
+      combined.push({
+        source: 'YouTube',
+        title: `YouTube Results: ${rawQ}`,
+        category: 'video',
+        genre: 'External Search',
+        description: 'Open full YouTube search results in a new tab.',
+        thumbnailUrl: 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=600',
+        externalUrl: `https://www.youtube.com/results?search_query=${q}`,
+        actionType: 'external'
+      });
+
+      combined.push({
+        source: 'Google',
+        title: `Google Results: ${rawQ}`,
+        category: 'web',
+        genre: 'Web Search',
+        description: 'Open Google search results in a new tab.',
+        thumbnailUrl: 'https://images.unsplash.com/photo-1573804633927-bfcbcd909acd?w=600',
+        externalUrl: `https://www.google.com/search?q=${q}`,
+        actionType: 'external'
+      });
+
+      const sourceSummary = activeSources.length ? activeSources.join(', ') + ' + ' : '';
+      statusEl.innerText = `Searched "${rawQ}" across: ${sourceSummary}YouTube/Google links.`;
+      renderCards(combined);
+    }
+
+    function renderCards(items) {
+      renderedItems = items;
+      const grid = document.getElementById('contentGrid');
+      if (!items.length) {
+        grid.innerHTML = '<p>No items found.</p>';
+        return;
+      }
+
+      grid.innerHTML = items.map((item, idx) => {
+        const safeTitle = escapeHtml(item.title || 'Untitled');
+        const safeGenre = escapeHtml(item.genre || '');
+        const safeCat = escapeHtml(item.category || '');
+        const safeDesc = escapeHtml(item.description || '');
+        const safeThumb = escapeHtml(item.thumbnailUrl || '');
+        const safeExtUrl = escapeHtml(item.externalUrl || '');
+        const source = escapeHtml(item.source || 'Poko Flix');
+
+        let badgeClass = 'badge-poko';
+        if (item.source === 'TMDB') badgeClass = 'badge-tmdb';
+        if (item.source === 'YouTube') badgeClass = 'badge-yt';
+        if (item.source === 'Google') badgeClass = 'badge-google';
+
+        let actionButton = '';
+        if (item.actionType === 'mp4') {
+          actionButton = `<button type="button" onclick="handleCardClick(${idx})">Play MP4</button>`;
+        } else if (item.actionType === 'tmdb-trailer') {
+          actionButton = `<button type="button" onclick="handleCardClick(${idx})">Play Trailer</button>`;
+        } else if (item.actionType === 'youtube-embed') {
+          actionButton = `<button type="button" onclick="handleCardClick(${idx})">Play on YouTube</button>`;
+        } else {
+          actionButton = `<a class="btn-link" href="${safeExtUrl}" target="_blank" rel="noopener noreferrer">Open ${source}</a>`;
+        }
+
+        return `
+          <div class="card">
+            <div>
+              <span class="badge ${badgeClass}">${source}</span>
+              ${safeThumb ? `<img src="${safeThumb}" alt="${safeTitle}" />` : ''}
+              <h4>${safeTitle}</h4>
+              <p>${safeCat}${safeGenre ? ' • ' + safeGenre : ''}</p>
+              ${safeDesc ? `<p class="desc">${safeDesc}</p>` : ''}
+            </div>
+            <div style="margin-top:10px;">
+              ${actionButton}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function handleCardClick(idx) {
+      const item = renderedItems[idx];
+      if (!item) return;
+      if (item.actionType === 'mp4') {
+        playMp4(item.title, item.videoUrl);
+      } else if (item.actionType === 'tmdb-trailer') {
+        playTmdbTrailer(item.title, item.tmdbId, item.mediaType);
+      } else if (item.actionType === 'youtube-embed') {
+        playYouTube(item.title, item.videoId);
+      }
+    }
+
+    function resetPlayer(title, statusText) {
+      const area = document.getElementById('playerArea');
+      const video = document.getElementById('videoPlayer');
+      const yt = document.getElementById('ytPlayer');
+
+      area.classList.remove('hidden');
+      document.getElementById('nowPlaying').innerText = title;
+      document.getElementById('playerStatus').innerText = statusText || '';
+
+      video.pause();
+      video.removeAttribute('src');
+      video.load();
+      video.classList.add('hidden');
+
+      yt.src = '';
+      yt.classList.add('hidden');
+    }
+
+    function playMp4(title, url) {
+      if (!url) {
+        resetPlayer(title, 'No direct MP4 URL was provided for this item.');
+        return;
+      }
+      resetPlayer('Now Playing: ' + title, 'Streaming direct MP4 from Poko Flix');
+      const video = document.getElementById('videoPlayer');
+      video.classList.remove('hidden');
+      video.src = url;
+      video.play().catch(() => {});
+    }
+
+    function playYouTube(title, videoId) {
+      resetPlayer('Now Playing: ' + title, 'Embedded YouTube playback');
+      const yt = document.getElementById('ytPlayer');
+      yt.classList.remove('hidden');
+      yt.src = `https://www.youtube.com/embed/${encodeURIComponent(videoId)}?autoplay=1`;
+    }
+
+    async function playTmdbTrailer(title, tmdbId, mediaType) {
+      resetPlayer('Loading Trailer: ' + title, 'Looking up trailer...');
+
+      if (TMDB_API_KEY && tmdbId) {
+        try {
+          const res = await fetch(
+            `https://api.themoviedb.org/3/${encodeURIComponent(mediaType)}/${encodeURIComponent(tmdbId)}/videos?api_key=${encodeURIComponent(TMDB_API_KEY)}`
+          );
+          const data = await res.json();
+          const videos = data.results || [];
+          const trailer =
+            videos.find(v => v.site === 'YouTube' && v.type === 'Trailer') ||
+            videos.find(v => v.site === 'YouTube');
+
+          if (trailer && trailer.key) {
+            playYouTube(title + ' (Trailer)', trailer.key);
+            return;
+          }
+        } catch (err) {
+          console.error('TMDB video lookup error:', err);
+        }
+      }
+
+      if (YOUTUBE_API_KEY) {
+        try {
+          const q = encodeURIComponent(title + ' official trailer');
+          const res = await fetch(
+            `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=1&q=${q}&key=${encodeURIComponent(YOUTUBE_API_KEY)}`
+          );
+          const data = await res.json();
+          const first = (data.items || [])[0];
+          if (first && first.id && first.id.videoId) {
+            playYouTube(title + ' (Trailer)', first.id.videoId);
+            return;
+          }
+        } catch (err) {
+          console.error('YouTube trailer fallback error:', err);
+        }
+      }
+
+      const ytSearchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(title + ' trailer')}`;
+      document.getElementById('playerStatus').innerHTML =
+        `No embedded trailer available automatically. <a href="${ytSearchUrl}" target="_blank" rel="noopener noreferrer" style="color:#ff6b6b;">Search "${escapeHtml(title)} trailer" on YouTube</a>.`;
+    }
+  </script>
+</body>
+</html>
