@@ -522,13 +522,69 @@
       position: relative;
       background: #000;
       aspect-ratio: 16 / 9;
+      overflow: hidden;
     }
 
-    #pokoVideo {
+    #pokoVideo,
+    #cinemaStageCanvas {
+      position: absolute;
+      inset: 0;
       width: 100%;
       height: 100%;
       display: block;
+    }
+
+    #pokoVideo {
+      z-index: 2;
       background: #000;
+    }
+
+    #pokoVideo.hidden {
+      display: none;
+    }
+
+    #cinemaStageCanvas {
+      z-index: 1;
+    }
+
+    .cinema-controls {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 3;
+      padding: 12px 16px;
+      background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.92));
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .cinema-controls.hidden {
+      display: none;
+    }
+
+    .ctrl-btn {
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #fff;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .seek-bar {
+      flex: 1;
+      accent-color: var(--crimson-bright);
+      cursor: pointer;
+    }
+
+    .time-readout {
+      font-family: monospace;
+      font-size: 0.82rem;
+      color: #e4e4ee;
     }
 
     .player-footer {
@@ -545,10 +601,10 @@
       display: flex;
       gap: 8px;
       flex: 1;
-      min-width: 260px;
+      min-width: 240px;
     }
 
-    .stream-url-form input {
+    .stream-url-form input[type="url"] {
       flex: 1;
       background: #14141f;
       border: 1px solid rgba(255, 255, 255, 0.15);
@@ -559,7 +615,8 @@
     }
 
     .stream-url-form button,
-    .cinema-mode-btn {
+    .cinema-mode-btn,
+    .file-pick-label {
       background: var(--crimson);
       border: none;
       color: #fff;
@@ -570,7 +627,8 @@
       font-size: 0.82rem;
     }
 
-    .cinema-mode-btn {
+    .cinema-mode-btn,
+    .file-pick-label {
       background: rgba(255, 255, 255, 0.1);
       border: 1px solid rgba(255, 255, 255, 0.18);
     }
@@ -669,15 +727,26 @@
         <h3 id="playerTitle">Now Playing — POKO FLIX</h3>
         <button class="close-player-btn" id="closePlayerBtn" title="Close (Esc)">✕</button>
       </div>
-      <div class="video-wrap">
-        <video id="pokoVideo" controls autoplay playsinline muted></video>
+      <div class="video-wrap" id="videoWrap">
+        <canvas id="cinemaStageCanvas" width="1280" height="720"></canvas>
+        <video id="pokoVideo" class="hidden" controls playsinline></video>
+        <div class="cinema-controls" id="cinemaControls">
+          <button type="button" class="ctrl-btn" id="cinemaPlayPauseBtn">⏸ Pause</button>
+          <input type="range" class="seek-bar" id="cinemaSeekBar" min="0" max="120" value="0" step="0.5" />
+          <span class="time-readout" id="cinemaTimeReadout">00:00 / 02:00</span>
+          <button type="button" class="ctrl-btn" id="cinemaFullscreenBtn">⛶</button>
+        </div>
       </div>
       <div class="player-footer">
         <form class="stream-url-form" id="customUrlForm">
-          <input type="url" id="customUrlInput" placeholder="Paste any direct .mp4 / .webm URL..." />
+          <input type="url" id="customUrlInput" placeholder="Paste .mp4 / .webm URL..." />
           <button type="submit">Load URL</button>
         </form>
-        <button type="button" class="cinema-mode-btn" id="useCinemaStreamBtn">🎬 Live Cinema Stream</button>
+        <label class="file-pick-label">
+          📁 Choose Video
+          <input type="file" id="localFileInput" accept="video/*" hidden />
+        </label>
+        <button type="button" class="cinema-mode-btn" id="useCinemaStreamBtn">🎬 Cinema Preview</button>
         <span class="player-status" id="playerStatus">Ready</span>
       </div>
     </div>
@@ -709,58 +778,7 @@
     const myList = new Set(["inception"]);
     let currentFilter = "all";
     let activeTitle = "POKO FLIX";
-
-    // Built-in Live Cinema Canvas Stream (always playable in <video> via srcObject)
-    const cinemaCanvas = document.createElement("canvas");
-    cinemaCanvas.width = 1280;
-    cinemaCanvas.height = 720;
-    const ctx = cinemaCanvas.getContext("2d");
-    let animId = null;
-    let startTime = performance.now();
-
-    function renderCinemaFrame(now) {
-      const elapsed = (now - startTime) / 1000;
-      ctx.fillStyle = "#06060a";
-      ctx.fillRect(0, 0, cinemaCanvas.width, cinemaCanvas.height);
-
-      // Animated crimson & nebula glow
-      const pulse = Math.sin(elapsed * 2.2) * 60 + 260;
-      const grad = ctx.createRadialGradient(640, 360, 30, 640, 360, pulse + 220);
-      grad.addColorStop(0, "rgba(255, 42, 61, 0.55)");
-      grad.addColorStop(0.5, "rgba(120, 25, 175, 0.25)");
-      grad.addColorStop(1, "rgba(5, 5, 10, 0)");
-      ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, cinemaCanvas.width, cinemaCanvas.height);
-
-      // Sweeping laser line
-      const sweepX = ((elapsed * 420) % (cinemaCanvas.width + 400)) - 200;
-      ctx.strokeStyle = "rgba(255, 65, 85, 0.7)";
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.moveTo(sweepX, 120);
-      ctx.lineTo(sweepX + 240, 600);
-      ctx.stroke();
-
-      // Title overlay
-      ctx.fillStyle = "#ffffff";
-      ctx.font = "900 54px sans-serif";
-      ctx.textAlign = "center";
-      ctx.fillText(activeTitle, 640, 355);
-
-      ctx.fillStyle = "#ff4d5e";
-      ctx.font = "700 20px sans-serif";
-      ctx.fillText("POKO FLIX LIVE STREAM • 1080p HD", 640, 405);
-
-      ctx.fillStyle = "rgba(255,255,255,0.65)";
-      ctx.font = "600 18px monospace";
-      const mins = String(Math.floor(elapsed / 60)).padStart(2, "0");
-      const secs = String(Math.floor(elapsed % 60)).padStart(2, "0");
-      ctx.fillText(`00:${mins}:${secs}`, 640, 450);
-
-      animId = requestAnimationFrame(renderCinemaFrame);
-    }
-
-    const cinemaStream = cinemaCanvas.captureStream(30);
+    let currentBlobUrl = null;
 
     // Render Cards
     const carousel = document.getElementById("trendingCarousel");
@@ -792,68 +810,155 @@
     }
     renderCards();
 
-    // Video Player Modal Logic
+    // Player Elements
     const playerModal = document.getElementById("playerModal");
     const pokoVideo = document.getElementById("pokoVideo");
+    const stageCanvas = document.getElementById("cinemaStageCanvas");
+    const stageCtx = stageCanvas.getContext("2d");
+    const cinemaControls = document.getElementById("cinemaControls");
+    const cinemaPlayPauseBtn = document.getElementById("cinemaPlayPauseBtn");
+    const cinemaSeekBar = document.getElementById("cinemaSeekBar");
+    const cinemaTimeReadout = document.getElementById("cinemaTimeReadout");
     const playerTitle = document.getElementById("playerTitle");
     const playerStatus = document.getElementById("playerStatus");
 
-    function startCinemaStream(title) {
-      activeTitle = title;
-      startTime = performance.now();
-      if (!animId) animId = requestAnimationFrame(renderCinemaFrame);
+    const TOTAL_DURATION = 120; // 2:00 preview timeline
+    let cinemaPlaying = true;
+    let cinemaElapsed = 0;
+    let lastFrameTime = performance.now();
+    let stageAnimId = null;
 
+    function formatTime(sec) {
+      const s = Math.max(0, Math.floor(sec));
+      const mins = String(Math.floor(s / 60)).padStart(2, "0");
+      const rem = String(s % 60).padStart(2, "0");
+      return `${mins}:${rem}`;
+    }
+
+    function drawCinemaFrame(now) {
+      const dt = Math.min(0.1, (now - lastFrameTime) / 1000);
+      lastFrameTime = now;
+
+      if (cinemaPlaying) {
+        cinemaElapsed = (cinemaElapsed + dt) % TOTAL_DURATION;
+        cinemaSeekBar.value = cinemaElapsed.toFixed(1);
+        cinemaTimeReadout.textContent = `${formatTime(cinemaElapsed)} / ${formatTime(TOTAL_DURATION)}`;
+      }
+
+      stageCtx.fillStyle = "#06060a";
+      stageCtx.fillRect(0, 0, stageCanvas.width, stageCanvas.height);
+
+      const pulse = Math.sin(cinemaElapsed * 2.4) * 55 + 250;
+      const grad = stageCtx.createRadialGradient(640, 360, 20, 640, 360, pulse + 240);
+      grad.addColorStop(0, "rgba(255, 42, 61, 0.58)");
+      grad.addColorStop(0.5, "rgba(120, 25, 175, 0.25)");
+      grad.addColorStop(1, "rgba(5, 5, 10, 0)");
+      stageCtx.fillStyle = grad;
+      stageCtx.fillRect(0, 0, stageCanvas.width, stageCanvas.height);
+
+      const sweepX = ((cinemaElapsed * 380) % (stageCanvas.width + 420)) - 210;
+      stageCtx.strokeStyle = "rgba(255, 70, 90, 0.75)";
+      stageCtx.lineWidth = 3;
+      stageCtx.beginPath();
+      stageCtx.moveTo(sweepX, 110);
+      stageCtx.lineTo(sweepX + 260, 610);
+      stageCtx.stroke();
+
+      stageCtx.fillStyle = "#ffffff";
+      stageCtx.font = "900 58px sans-serif";
+      stageCtx.textAlign = "center";
+      stageCtx.fillText(activeTitle, 640, 345);
+
+      stageCtx.fillStyle = "#ff4d5e";
+      stageCtx.font = "700 20px sans-serif";
+      stageCtx.fillText("POKO FLIX CINEMA PREVIEW • READY FOR MP4 STREAM", 640, 398);
+
+      stageAnimId = requestAnimationFrame(drawCinemaFrame);
+    }
+
+    function startCinemaMode(title) {
+      activeTitle = title;
+      cinemaElapsed = 0;
+      cinemaPlaying = true;
+      cinemaPlayPauseBtn.textContent = "⏸ Pause";
+      cinemaSeekBar.value = 0;
+      cinemaTimeReadout.textContent = `00:00 / ${formatTime(TOTAL_DURATION)}`;
+
+      pokoVideo.pause();
       pokoVideo.removeAttribute("src");
-      pokoVideo.load();
-      pokoVideo.srcObject = cinemaStream;
-      pokoVideo.muted = true;
-      pokoVideo.play().then(() => {
-        playerStatus.textContent = "Playing live cinema stream";
-      }).catch(() => {
-        playerStatus.textContent = "Click ▶ on video controls to start";
-      });
+      pokoVideo.classList.add("hidden");
+      stageCanvas.classList.remove("hidden");
+      cinemaControls.classList.remove("hidden");
+
+      lastFrameTime = performance.now();
+      if (!stageAnimId) stageAnimId = requestAnimationFrame(drawCinemaFrame);
+      playerStatus.textContent = "Playing cinema preview";
     }
 
     function openPlayer(title, url = "") {
+      activeTitle = title;
       playerTitle.textContent = `Now Playing — ${title}`;
       playerModal.classList.add("open");
       playerModal.setAttribute("aria-hidden", "false");
 
       if (url) {
-        if (animId) {
-          cancelAnimationFrame(animId);
-          animId = null;
+        if (stageAnimId) {
+          cancelAnimationFrame(stageAnimId);
+          stageAnimId = null;
         }
-        pokoVideo.srcObject = null;
+        stageCanvas.classList.add("hidden");
+        cinemaControls.classList.add("hidden");
+        pokoVideo.classList.remove("hidden");
         pokoVideo.src = url;
         pokoVideo.load();
         pokoVideo.play().then(() => {
-          playerStatus.textContent = "Playing external stream";
+          playerStatus.textContent = "Playing video";
         }).catch(() => {
-          playerStatus.textContent = "Click ▶ on video controls to start";
+          playerStatus.textContent = "Click ▶ on player to start";
         });
       } else {
-        startCinemaStream(title);
+        startCinemaMode(title);
       }
     }
 
     function closePlayer() {
       pokoVideo.pause();
-      pokoVideo.srcObject = null;
       pokoVideo.removeAttribute("src");
       pokoVideo.load();
-      if (animId) {
-        cancelAnimationFrame(animId);
-        animId = null;
+      if (currentBlobUrl) {
+        URL.revokeObjectURL(currentBlobUrl);
+        currentBlobUrl = null;
+      }
+      if (stageAnimId) {
+        cancelAnimationFrame(stageAnimId);
+        stageAnimId = null;
       }
       playerModal.classList.remove("open");
       playerModal.setAttribute("aria-hidden", "true");
     }
 
+    cinemaPlayPauseBtn.addEventListener("click", () => {
+      cinemaPlaying = !cinemaPlaying;
+      cinemaPlayPauseBtn.textContent = cinemaPlaying ? "⏸ Pause" : "▶ Play";
+      lastFrameTime = performance.now();
+    });
+
+    cinemaSeekBar.addEventListener("input", (e) => {
+      cinemaElapsed = Number(e.target.value);
+      cinemaTimeReadout.textContent = `${formatTime(cinemaElapsed)} / ${formatTime(TOTAL_DURATION)}`;
+      drawCinemaFrame(performance.now());
+    });
+
+    document.getElementById("cinemaFullscreenBtn").addEventListener("click", () => {
+      const wrap = document.getElementById("videoWrap");
+      if (!document.fullscreenElement) wrap.requestFullscreen?.();
+      else document.exitFullscreen?.();
+    });
+
     pokoVideo.addEventListener("error", () => {
-      const errCode = pokoVideo.error ? pokoVideo.error.code : "unknown";
-      playerStatus.textContent = `External URL failed (code ${errCode}) — switching to Cinema Stream`;
-      startCinemaStream(activeTitle);
+      if (!pokoVideo.src) return;
+      playerStatus.textContent = "Video URL failed — switched to Cinema Preview";
+      startCinemaMode(activeTitle);
     });
 
     document.getElementById("playNowBtn").addEventListener("click", () => {
@@ -879,8 +984,16 @@
       openPlayer("Custom Stream", customUrl);
     });
 
+    document.getElementById("localFileInput").addEventListener("change", (e) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      if (currentBlobUrl) URL.revokeObjectURL(currentBlobUrl);
+      currentBlobUrl = URL.createObjectURL(file);
+      openPlayer(file.name, currentBlobUrl);
+    });
+
     document.getElementById("useCinemaStreamBtn").addEventListener("click", () => {
-      startCinemaStream(activeTitle);
+      startCinemaMode(activeTitle);
     });
 
     // Sidebar filter tabs
