@@ -35,10 +35,9 @@
       visibility: hidden;
       pointer-events: none;
     }
-    .skip-intro-btn {
+    .skip-intro-btn, .sound-intro-btn {
       position: absolute;
       top: 20px;
-      right: 20px;
       width: auto;
       background: rgba(255, 255, 255, 0.08);
       border: 1px solid rgba(255, 255, 255, 0.22);
@@ -48,7 +47,9 @@
       border-radius: 999px;
       cursor: pointer;
     }
-    .skip-intro-btn:hover {
+    .skip-intro-btn { right: 20px; }
+    .sound-intro-btn { left: 20px; }
+    .skip-intro-btn:hover, .sound-intro-btn:hover {
       background: rgba(255, 255, 255, 0.16);
       opacity: 1;
     }
@@ -296,8 +297,9 @@
 </head>
 <body>
   <!-- NETFLIX-STYLE INTRO SCREEN -->
-  <div id="introOverlay" aria-label="Poko Flix Intro">
-    <button class="skip-intro-btn" type="button" onclick="finishIntro(true)">Skip Intro</button>
+  <div id="introOverlay" aria-label="Poko Flix Intro" onclick="playIntroSound()">
+    <button class="sound-intro-btn" id="soundBtn" type="button" onclick="event.stopPropagation(); playIntroSound(true)">Play Sound</button>
+    <button class="skip-intro-btn" type="button" onclick="event.stopPropagation(); finishIntro(true)">Skip Intro</button>
     <div class="intro-stage">
       <div class="intro-sweep"></div>
       <div class="intro-logo">POKO FLIX</div>
@@ -309,8 +311,8 @@
   <div class="box hidden" id="loginBox">
     <h2 style="margin-top:0; color:#e50914;">Poko Flix</h2>
     <h3>Sign In</h3>
-    <input id="email" type="email" placeholder="Email" value="admin@pokoflix.com" />
-    <input id="password" type="password" placeholder="Password" value="admin123" />
+    <input id="email" type="email" placeholder="Email" autocomplete="username" />
+    <input id="password" type="password" placeholder="Password" autocomplete="current-password" />
     <button type="button" onclick="login()">Login</button>
     <p id="loginMsg" class="status-note"></p>
   </div>
@@ -393,6 +395,107 @@
     let introDone = false;
     let introTimer = null;
     let renderedItems = [];
+    let introSoundPlayed = false;
+
+    // =========================================================
+    // NETFLIX-STYLE CINEMATIC "TA-DUM" SOUND (WEB AUDIO API)
+    // =========================================================
+    function playIntroSound(forceReplay = false) {
+      if (introSoundPlayed && !forceReplay) return;
+
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+
+      const ctx = new AudioCtx();
+      if (ctx.state === 'suspended') {
+        ctx.resume().catch(() => {});
+      }
+      if (ctx.state !== 'running') {
+        // Browser blocked autoplay until user clicks anywhere
+        return;
+      }
+
+      introSoundPlayed = true;
+      const soundBtn = document.getElementById('soundBtn');
+      if (soundBtn) soundBtn.innerText = 'Sound On';
+
+      const now = ctx.currentTime;
+
+      // Helper for deep cinematic impact thuds ("Ta" and "Dum")
+      function triggerThud(startTime, startFreq, endFreq, duration, peakGain) {
+        const osc = ctx.createOscillator();
+        const sub = ctx.createOscillator();
+        const gain = ctx.createGain();
+        const filter = ctx.createBiquadFilter();
+
+        osc.type = 'triangle';
+        sub.type = 'sine';
+
+        osc.frequency.setValueAtTime(startFreq, startTime);
+        osc.frequency.exponentialRampToValueAtTime(endFreq, startTime + duration);
+
+        sub.frequency.setValueAtTime(startFreq * 0.5, startTime);
+        sub.frequency.exponentialRampToValueAtTime(endFreq * 0.5, startTime + duration);
+
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(240, startTime);
+        filter.frequency.exponentialRampToValueAtTime(75, startTime + duration);
+
+        gain.gain.setValueAtTime(0.0001, startTime);
+        gain.gain.linearRampToValueAtTime(peakGain, startTime + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
+
+        osc.connect(filter);
+        sub.connect(filter);
+        filter.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.start(startTime);
+        sub.start(startTime);
+        osc.stop(startTime + duration + 0.05);
+        sub.stop(startTime + duration + 0.05);
+      }
+
+      // First hit ("Ta")
+      triggerThud(now + 0.02, 130, 48, 0.35, 0.55);
+
+      // Second deeper hit ("Dum")
+      triggerThud(now + 0.30, 105, 36, 1.45, 0.85);
+
+      // Cinematic warm chord shimmer tail
+      const chordFreqs = [146.83, 220.0, 293.66, 440.0]; // D3, A3, D4, A4
+      chordFreqs.forEach((freq, idx) => {
+        const pad = ctx.createOscillator();
+        const padGain = ctx.createGain();
+        const padFilter = ctx.createBiquadFilter();
+
+        pad.type = idx % 2 === 0 ? 'sawtooth' : 'sine';
+        pad.frequency.setValueAtTime(freq, now + 0.28);
+
+        padFilter.type = 'lowpass';
+        padFilter.frequency.setValueAtTime(900, now + 0.28);
+        padFilter.frequency.exponentialRampToValueAtTime(260, now + 1.95);
+
+        padGain.gain.setValueAtTime(0.0001, now + 0.28);
+        padGain.gain.linearRampToValueAtTime(0.06, now + 0.45);
+        padGain.gain.exponentialRampToValueAtTime(0.0001, now + 1.95);
+
+        pad.connect(padFilter);
+        padFilter.connect(padGain);
+        padGain.connect(ctx.destination);
+
+        pad.start(now + 0.28);
+        pad.stop(now + 2.0);
+      });
+    }
+
+    // Try playing immediately, and also unlock on first user interaction if blocked
+    window.addEventListener('DOMContentLoaded', () => playIntroSound());
+    ['pointerdown', 'keydown'].forEach(evt => {
+      window.addEventListener(evt, () => {
+        if (!introDone) playIntroSound();
+      }, { once: true });
+    });
 
     // Start intro timer on load
     introTimer = setTimeout(() => finishIntro(false), INTRO_DURATION_MS);
@@ -452,7 +555,7 @@
         msgEl.innerText = '';
         showApp();
       } catch (err) {
-        msgEl.innerText = 'Could not reach Poko Flix server (http://localhost:5000).';
+        msgEl.innerText = 'Could not reach Poko Flix server.';
       }
     }
 
