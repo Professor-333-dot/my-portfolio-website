@@ -35,9 +35,10 @@
       visibility: hidden;
       pointer-events: none;
     }
-    .skip-intro-btn, .sound-intro-btn {
+    .skip-intro-btn {
       position: absolute;
       top: 20px;
+      right: 20px;
       width: auto;
       background: rgba(255, 255, 255, 0.08);
       border: 1px solid rgba(255, 255, 255, 0.22);
@@ -47,12 +48,47 @@
       border-radius: 999px;
       cursor: pointer;
     }
-    .skip-intro-btn { right: 20px; }
-    .sound-intro-btn { left: 20px; }
-    .skip-intro-btn:hover, .sound-intro-btn:hover {
+    .skip-intro-btn:hover {
       background: rgba(255, 255, 255, 0.16);
       opacity: 1;
     }
+
+    /* Start Gate Screen (Unlocks Auto-Sound on Click) */
+    #startGate {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 20px;
+    }
+    .gate-title {
+      font-size: clamp(2rem, 6vw, 3.8rem);
+      font-weight: 900;
+      letter-spacing: 0.14em;
+      color: #e50914;
+      margin-bottom: 18px;
+      text-shadow: 0 0 24px rgba(229, 9, 20, 0.45);
+    }
+    .enter-btn {
+      width: auto;
+      padding: 14px 36px;
+      font-size: 16px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      background: #e50914;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      box-shadow: 0 0 28px rgba(229, 9, 20, 0.55);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .enter-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 38px rgba(229, 9, 20, 0.8);
+    }
+
     .intro-stage {
       position: relative;
       padding: 18px 34px;
@@ -297,10 +333,17 @@
 </head>
 <body>
   <!-- NETFLIX-STYLE INTRO SCREEN -->
-  <div id="introOverlay" aria-label="Poko Flix Intro" onclick="playIntroSound()">
-    <button class="sound-intro-btn" id="soundBtn" type="button" onclick="event.stopPropagation(); playIntroSound(true)">Play Sound</button>
-    <button class="skip-intro-btn" type="button" onclick="event.stopPropagation(); finishIntro(true)">Skip Intro</button>
-    <div class="intro-stage">
+  <div id="introOverlay" aria-label="Poko Flix Intro">
+    <button class="skip-intro-btn" type="button" onclick="finishIntro(true)">Skip</button>
+
+    <!-- Step 1: Enter button so browser allows automatic sound -->
+    <div id="startGate">
+      <div class="gate-title">POKO FLIX</div>
+      <button class="enter-btn" type="button" onclick="startIntroWithSound()">Enter Poko Flix</button>
+    </div>
+
+    <!-- Step 2: Animated Logo + Automatic Sound -->
+    <div class="intro-stage hidden" id="introStage">
       <div class="intro-sweep"></div>
       <div class="intro-logo">POKO FLIX</div>
       <div class="intro-sub">Stream Without Limits</div>
@@ -393,16 +436,25 @@
     let token = localStorage.getItem('poko_token') || '';
     let user = JSON.parse(localStorage.getItem('poko_user') || 'null');
     let introDone = false;
+    let introStarted = false;
     let introTimer = null;
     let renderedItems = [];
-    let introSoundPlayed = false;
 
     // =========================================================
-    // NETFLIX-STYLE CINEMATIC "TA-DUM" SOUND (WEB AUDIO API)
+    // START INTRO + AUTOMATIC SOUND ON ENTER CLICK
     // =========================================================
-    function playIntroSound(forceReplay = false) {
-      if (introSoundPlayed && !forceReplay) return;
+    function startIntroWithSound() {
+      if (introStarted) return;
+      introStarted = true;
 
+      document.getElementById('startGate').classList.add('hidden');
+      document.getElementById('introStage').classList.remove('hidden');
+
+      playIntroSound();
+      introTimer = setTimeout(() => finishIntro(false), INTRO_DURATION_MS);
+    }
+
+    function playIntroSound() {
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
       if (!AudioCtx) return;
 
@@ -410,18 +462,9 @@
       if (ctx.state === 'suspended') {
         ctx.resume().catch(() => {});
       }
-      if (ctx.state !== 'running') {
-        // Browser blocked autoplay until user clicks anywhere
-        return;
-      }
-
-      introSoundPlayed = true;
-      const soundBtn = document.getElementById('soundBtn');
-      if (soundBtn) soundBtn.innerText = 'Sound On';
 
       const now = ctx.currentTime;
 
-      // Helper for deep cinematic impact thuds ("Ta" and "Dum")
       function triggerThud(startTime, startFreq, endFreq, duration, peakGain) {
         const osc = ctx.createOscillator();
         const sub = ctx.createOscillator();
@@ -463,7 +506,7 @@
       triggerThud(now + 0.30, 105, 36, 1.45, 0.85);
 
       // Cinematic warm chord shimmer tail
-      const chordFreqs = [146.83, 220.0, 293.66, 440.0]; // D3, A3, D4, A4
+      const chordFreqs = [146.83, 220.0, 293.66, 440.0];
       chordFreqs.forEach((freq, idx) => {
         const pad = ctx.createOscillator();
         const padGain = ctx.createGain();
@@ -488,17 +531,6 @@
         pad.stop(now + 2.0);
       });
     }
-
-    // Try playing immediately, and also unlock on first user interaction if blocked
-    window.addEventListener('DOMContentLoaded', () => playIntroSound());
-    ['pointerdown', 'keydown'].forEach(evt => {
-      window.addEventListener(evt, () => {
-        if (!introDone) playIntroSound();
-      }, { once: true });
-    });
-
-    // Start intro timer on load
-    introTimer = setTimeout(() => finishIntro(false), INTRO_DURATION_MS);
 
     function finishIntro(skipped = false) {
       if (introDone) return;
