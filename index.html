@@ -3,1227 +3,902 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Poko Flix</title>
+  <title>Poko Flix — Stream &amp; Vault</title>
+  <meta name="theme-color" content="#ff1e42" />
   <style>
     :root {
-      --bg-void: #06070b;
-      --bg-surface: #0f131f;
-      --bg-elevated: #161b2c;
-      --bg-glass: rgba(10, 13, 22, 0.82);
-      --border-subtle: rgba(255, 255, 255, 0.08);
-      --border-strong: rgba(255, 255, 255, 0.16);
-      --text-primary: #f4f6fb;
-      --text-secondary: #9aa3b8;
-      --accent-crimson: #ff1e42;
-      --accent-coral: #ff5a36;
-      --accent-gold: #f5b700;
-      --accent-cyan: #00d4ff;
-      --radius-lg: 16px;
-      --radius-md: 12px;
-      --radius-sm: 8px;
+      --bg: #06070b;
+      --surface: #10131c;
+      --surface-2: #171c29;
+      --border: rgba(255, 255, 255, 0.09);
+      --text: #f5f7fb;
+      --muted: #9aa3b8;
+      --accent: #ff1e42;
+      --accent-hover: #ff3b5c;
+      --ok: #22c55e;
+      --warn: #f59e0b;
+      --radius: 14px;
     }
 
     * {
       box-sizing: border-box;
-    }
-
-    html {
-      scroll-behavior: smooth;
-    }
-
-    body {
       margin: 0;
-      min-height: 100vh;
-      font-family: "Inter", "Segoe UI", Roboto, Arial, sans-serif;
-      background:
-        radial-gradient(circle at 18% 0%, rgba(255, 30, 66, 0.14), transparent 38%),
-        radial-gradient(circle at 85% 12%, rgba(0, 212, 255, 0.08), transparent 35%),
-        var(--bg-void);
-      color: var(--text-primary);
-      overflow-x: hidden;
+      padding: 0;
     }
 
-    /* =========================================================
-       NETFLIX-STYLE 'P' + POKO FLIX INTRO OVERLAY
-       ========================================================= */
+    html, body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      line-height: 1.5;
+      min-height: 100vh;
+    }
+
+    /* Netflix-style 'P' Intro Overlay */
     #introOverlay {
       position: fixed;
       inset: 0;
       z-index: 9999;
-      background:
-        radial-gradient(circle at 50% 45%, rgba(255, 30, 66, 0.22) 0%, rgba(16, 8, 14, 0.92) 45%, #040407 100%);
+      background: radial-gradient(circle at center, #18060b 0%, #05060a 72%);
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-      flex-direction: column;
-      overflow: hidden;
-      transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1), visibility 0.7s ease;
+      transition: opacity 0.55s ease, visibility 0.55s ease;
     }
 
-    #introOverlay.fade-out {
+    #introOverlay.hidden {
       opacity: 0;
       visibility: hidden;
       pointer-events: none;
     }
 
-    .intro-ambient-glow {
-      position: absolute;
-      width: 440px;
-      height: 440px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(255, 30, 66, 0.35), rgba(255, 90, 54, 0.08) 55%, transparent 72%);
-      filter: blur(28px);
-      animation: ambientPulse 2.8s ease-in-out forwards;
-      pointer-events: none;
-    }
-
-    @keyframes ambientPulse {
-      0% { transform: scale(0.5); opacity: 0; }
-      45% { transform: scale(1.15); opacity: 1; }
-      100% { transform: scale(1.55); opacity: 0.35; }
-    }
-
-    .skip-intro-btn {
-      position: absolute;
-      top: 22px;
-      right: 24px;
-      width: auto;
-      background: rgba(255, 255, 255, 0.08);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      color: var(--text-primary);
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      padding: 9px 16px;
-      border-radius: 999px;
-      cursor: pointer;
-      backdrop-filter: blur(10px);
-      transition: background 0.2s ease, transform 0.2s ease;
-    }
-
-    .skip-intro-btn:hover {
-      background: rgba(255, 30, 66, 0.28);
-      border-color: rgba(255, 30, 66, 0.65);
-      transform: translateY(-1px);
-    }
-
-    .intro-stage {
-      position: relative;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      perspective: 1100px;
-      padding: 24px 32px;
-      animation: introZoomOut 2.85s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
-
-    @keyframes introZoomOut {
-      0% {
-        transform: scale(0.72);
-        opacity: 0;
-      }
-      22% {
-        transform: scale(1);
-        opacity: 1;
-      }
-      76% {
-        transform: scale(1.06);
-        opacity: 1;
-      }
-      100% {
-        transform: scale(2.35);
-        opacity: 0;
-      }
-    }
-
-    .p-emblem-wrap {
-      position: relative;
-      width: 150px;
-      height: 196px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      filter: drop-shadow(0 0 28px rgba(255, 30, 66, 0.65));
-      overflow: hidden;
-      border-radius: 16px;
-    }
-
-    .p-svg {
-      width: 136px;
-      height: 184px;
-      overflow: visible;
-    }
-
-    .p-ribbon-back {
-      fill: #8f081f;
-      animation: ribbonBackReveal 1.1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-    }
-
-    .p-ribbon-mid {
-      fill: url(#pokoPGradDark);
-      animation: ribbonMidReveal 1.25s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-    }
-
-    .p-ribbon-front {
-      fill: url(#pokoPGradBright);
-      filter: drop-shadow(6px 10px 18px rgba(0, 0, 0, 0.75));
-      animation: ribbonFrontReveal 1.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
-
-    @keyframes ribbonBackReveal {
-      0% { opacity: 0; transform: translateY(26px) scaleY(0.7); }
-      100% { opacity: 1; transform: translateY(0) scaleY(1); }
-    }
-
-    @keyframes ribbonMidReveal {
-      0% { opacity: 0; transform: translateX(-18px); }
-      100% { opacity: 1; transform: translateX(0); }
-    }
-
-    @keyframes ribbonFrontReveal {
-      0% { opacity: 0; transform: translateY(-24px) scale(0.92); }
-      100% { opacity: 1; transform: translateY(0) scale(1); }
-    }
-
-    .intro-sweep {
-      position: absolute;
-      top: -25%;
-      bottom: -25%;
-      width: 44px;
-      background: linear-gradient(
-        90deg,
-        transparent,
-        rgba(255, 90, 54, 0.35),
-        rgba(255, 255, 255, 0.92),
-        rgba(255, 30, 66, 0.4),
-        transparent
-      );
-      filter: blur(5px);
-      transform: skewX(-24deg);
-      animation: introSweepBeam 1.75s cubic-bezier(0.22, 1, 0.36, 1) 0.35s forwards;
-      pointer-events: none;
-    }
-
-    @keyframes introSweepBeam {
-      0% { left: -35%; opacity: 0; }
-      25% { opacity: 1; }
-      85% { opacity: 1; }
-      100% { left: 135%; opacity: 0; }
-    }
-
-    .intro-brand-name {
-      margin-top: 22px;
-      font-size: clamp(2rem, 5.2vw, 3.5rem);
+    .p-emblem {
+      font-size: clamp(5.5rem, 18vw, 10rem);
       font-weight: 900;
-      letter-spacing: 0.22em;
-      text-transform: uppercase;
-      background: linear-gradient(90deg, #ffffff 0%, #ffd6de 45%, #ff2e55 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      text-shadow: 0 10px 30px rgba(255, 30, 66, 0.35);
-      opacity: 0;
-      transform: translateY(12px);
-      animation: brandUnderReveal 1.3s cubic-bezier(0.16, 1, 0.3, 1) 0.45s forwards;
-      text-align: center;
+      color: var(--accent);
+      letter-spacing: -0.05em;
+      text-shadow: 0 0 42px rgba(255, 30, 66, 0.65);
+      animation: pPulse 1.5s ease-in-out infinite alternate;
       user-select: none;
     }
 
-    .intro-tagline {
-      margin-top: 8px;
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 0.38em;
+    .intro-sub {
+      margin-top: 0.4rem;
+      font-size: 0.95rem;
+      letter-spacing: 0.22em;
       text-transform: uppercase;
-      color: var(--accent-gold);
-      opacity: 0;
-      animation: brandUnderReveal 1.2s ease 0.75s forwards;
+      color: var(--muted);
     }
 
-    @keyframes brandUnderReveal {
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
+    #skipIntroBtn {
+      margin-top: 1.6rem;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 0.5rem 1.1rem;
+      border-radius: 999px;
+      cursor: pointer;
+      font-size: 0.85rem;
     }
 
-    /* =========================================================
-       MAIN STOREFRONT & ADMIN VAULT SHELL
-       ========================================================= */
-    .app-shell {
+    @keyframes pPulse {
+      from { transform: scale(0.95); text-shadow: 0 0 20px rgba(255, 30, 66, 0.4); }
+      to { transform: scale(1.06); text-shadow: 0 0 55px rgba(255, 30, 66, 0.85); }
+    }
+
+    /* Top Navigation */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: rgba(6, 7, 11, 0.92);
+      border-bottom: 1px solid var(--border);
+      padding: 0.85rem 1.25rem;
+    }
+
+    .nav-inner {
       max-width: 1280px;
       margin: 0 auto;
-      padding: 20px 22px 64px;
-      opacity: 0;
-      transform: translateY(16px);
-      transition: opacity 0.6s ease, transform 0.6s ease;
-    }
-
-    .app-shell.visible {
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    .topbar {
-      position: sticky;
-      top: 14px;
-      z-index: 50;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 16px;
+      gap: 1rem;
       flex-wrap: wrap;
-      padding: 14px 20px;
-      background: var(--bg-glass);
-      backdrop-filter: blur(16px);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-lg);
-      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
     }
 
-    .brand-lockup {
+    .brand {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 0.65rem;
       text-decoration: none;
+      color: var(--text);
+      font-weight: 800;
+      font-size: 1.35rem;
+      letter-spacing: -0.02em;
     }
 
-    .brand-p-badge {
-      width: 40px;
-      height: 40px;
-      border-radius: 10px;
-      background: linear-gradient(135deg, var(--accent-crimson), var(--accent-coral));
+    .brand-badge {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      background: var(--accent);
       display: grid;
       place-items: center;
       font-weight: 900;
-      font-size: 22px;
-      color: #fff;
-      box-shadow: 0 8px 20px rgba(255, 30, 66, 0.42);
-    }
-
-    .brand-text {
-      font-size: 20px;
-      font-weight: 900;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
+      font-size: 1.15rem;
       color: #fff;
     }
 
-    .brand-text span {
-      color: var(--accent-crimson);
-    }
-
-    .nav-pills {
+    .nav-actions {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 0.6rem;
       flex-wrap: wrap;
     }
 
-    .nav-pill {
-      padding: 9px 16px;
-      border-radius: 999px;
-      border: 1px solid var(--border-subtle);
-      background: var(--bg-elevated);
-      color: var(--text-primary);
-      font-size: 13px;
-      font-weight: 700;
-      text-decoration: none;
+    .btn {
+      background: var(--surface-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 0.55rem 0.95rem;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      font-weight: 600;
       cursor: pointer;
-      transition: all 0.2s ease;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      transition: background 0.15s ease, border-color 0.15s ease;
     }
 
-    .nav-pill:hover {
-      border-color: var(--accent-crimson);
-      background: rgba(255, 30, 66, 0.16);
+    .btn:hover {
+      background: #21283a;
+      border-color: rgba(255, 255, 255, 0.2);
     }
 
-    .nav-pill.vault-pill {
-      border-color: rgba(245, 183, 0, 0.45);
-      background: rgba(245, 183, 0, 0.12);
-      color: var(--accent-gold);
+    .btn-primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
     }
 
-    /* Hero Showcase */
-    .hero-banner {
-      margin-top: 22px;
-      position: relative;
-      border-radius: var(--radius-lg);
-      overflow: hidden;
-      border: 1px solid var(--border-subtle);
-      background:
-        linear-gradient(105deg, rgba(6, 7, 11, 0.94) 0%, rgba(15, 19, 31, 0.78) 52%, rgba(255, 30, 66, 0.18) 100%),
-        radial-gradient(circle at 80% 35%, rgba(255, 90, 54, 0.25), transparent 55%);
-      padding: 36px 32px;
+    .btn-primary:hover {
+      background: var(--accent-hover);
+      border-color: var(--accent-hover);
+    }
+
+    .btn.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    /* Main Shell */
+    main {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 1.25rem;
+    }
+
+    .page-view {
+      display: none;
+    }
+
+    .page-view.active {
+      display: block;
+    }
+
+    /* Hero & Telemetry */
+    .hero {
+      background: linear-gradient(135deg, rgba(255, 30, 66, 0.18), rgba(16, 19, 28, 0.95) 55%);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.35rem;
+      margin-bottom: 1.25rem;
       display: grid;
       grid-template-columns: 1.4fr 1fr;
-      gap: 24px;
+      gap: 1.25rem;
       align-items: center;
     }
 
     @media (max-width: 820px) {
-      .hero-banner {
+      .hero {
         grid-template-columns: 1fr;
-        padding: 24px 20px;
       }
     }
 
-    .hero-eyebrow {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 5px 12px;
-      border-radius: 999px;
-      background: rgba(255, 30, 66, 0.16);
-      border: 1px solid rgba(255, 30, 66, 0.4);
-      color: #ff879c;
-      font-size: 11px;
-      font-weight: 800;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
+    .hero h1 {
+      font-size: clamp(1.5rem, 3vw, 2.2rem);
+      line-height: 1.2;
+      margin-bottom: 0.45rem;
     }
 
-    .hero-title {
-      margin: 14px 0 10px;
-      font-size: clamp(1.8rem, 3.6vw, 2.8rem);
-      font-weight: 900;
-      line-height: 1.12;
-      letter-spacing: -0.02em;
-    }
-
-    .hero-desc {
-      margin: 0 0 20px;
-      color: var(--text-secondary);
-      font-size: 14px;
-      line-height: 1.6;
+    .hero p {
+      color: var(--muted);
+      font-size: 0.95rem;
       max-width: 58ch;
     }
 
-    .hero-actions {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-
-    .btn-primary {
-      background: linear-gradient(135deg, var(--accent-crimson), var(--accent-coral));
-      color: #fff;
-      border: none;
-      border-radius: var(--radius-sm);
-      padding: 11px 20px;
-      font-size: 13px;
-      font-weight: 800;
-      letter-spacing: 0.04em;
-      cursor: pointer;
-      box-shadow: 0 10px 24px rgba(255, 30, 66, 0.35);
-      transition: transform 0.18s ease, box-shadow 0.18s ease;
-    }
-
-    .btn-primary:hover:not(:disabled) {
-      transform: translateY(-1px);
-      box-shadow: 0 14px 28px rgba(255, 30, 66, 0.5);
-    }
-
-    .btn-primary:disabled,
-    .btn-secondary:disabled,
-    .btn-download:disabled {
-      opacity: 0.55;
-      cursor: not-allowed;
-    }
-
-    .btn-secondary {
-      background: var(--bg-elevated);
-      color: var(--text-primary);
-      border: 1px solid var(--border-strong);
-      border-radius: var(--radius-sm);
-      padding: 11px 18px;
-      font-size: 13px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: background 0.18s ease, border-color 0.18s ease;
-    }
-
-    .btn-secondary:hover:not(:disabled) {
-      background: #1f263d;
-      border-color: rgba(255, 255, 255, 0.3);
-    }
-
-    .btn-download {
-      background: rgba(0, 212, 255, 0.14);
-      color: var(--accent-cyan);
-      border: 1px solid rgba(0, 212, 255, 0.38);
-      border-radius: var(--radius-sm);
-      padding: 10px 14px;
-      font-size: 12px;
-      font-weight: 800;
-      cursor: pointer;
-      transition: background 0.18s ease, transform 0.18s ease;
-    }
-
-    .btn-download:hover:not(:disabled) {
-      background: rgba(0, 212, 255, 0.24);
-      transform: translateY(-1px);
-    }
-
-    .btn-danger {
-      background: rgba(255, 30, 66, 0.14);
-      color: #ff758f;
-      border: 1px solid rgba(255, 30, 66, 0.38);
-      border-radius: var(--radius-sm);
-      padding: 7px 11px;
-      font-size: 12px;
-      font-weight: 700;
-      cursor: pointer;
-    }
-
-    .btn-danger:hover {
-      background: rgba(255, 30, 66, 0.26);
-    }
-
-    .hero-stats-card {
-      background: rgba(10, 13, 22, 0.72);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-md);
-      padding: 18px;
+    .stats-grid {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 14px;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.7rem;
     }
 
-    .mini-stat {
-      background: var(--bg-surface);
-      border: 1px solid var(--border-subtle);
-      border-radius: 10px;
-      padding: 14px;
+    .stat-card {
+      background: rgba(6, 7, 11, 0.65);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 0.8rem;
     }
 
-    .mini-stat-label {
-      font-size: 11px;
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--muted);
       text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--text-secondary);
+      letter-spacing: 0.05em;
     }
 
-    .mini-stat-value {
-      margin-top: 6px;
-      font-size: 24px;
-      font-weight: 900;
-      color: #fff;
+    .stat-value {
+      font-size: 1.35rem;
+      font-weight: 800;
+      margin-top: 0.2rem;
     }
 
-    .mini-stat-value.gold { color: var(--accent-gold); }
-    .mini-stat-value.cyan { color: var(--accent-cyan); }
-    .mini-stat-value.crimson { color: #ff5573; }
-
-    /* Section Panels */
-    .panel {
-      margin-top: 24px;
-      background: var(--bg-surface);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-lg);
-      padding: 24px;
-      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.35);
+    /* Video Player Stage (NO transform or filter on ancestors) */
+    #playerSection {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem;
+      margin-bottom: 1.35rem;
+      transition: max-width 0.25s ease;
     }
 
-    .panel-header {
+    #playerSection.large-screen {
+      max-width: 100%;
+      padding: 1.25rem;
+      border-color: rgba(255, 30, 66, 0.45);
+    }
+
+    .player-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      margin-bottom: 0.8rem;
+    }
+
+    .player-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+
+    .player-meta {
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    .player-controls-bar {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 12px;
+      gap: 0.75rem;
       flex-wrap: wrap;
-      margin-bottom: 18px;
+      margin-top: 0.85rem;
+      padding-top: 0.75rem;
+      border-top: 1px solid var(--border);
     }
 
-    .panel-title {
-      margin: 0;
-      font-size: 19px;
-      font-weight: 800;
-      letter-spacing: 0.01em;
-    }
-
-    .vault-badge {
-      display: inline-flex;
+    .control-group {
+      display: flex;
       align-items: center;
-      gap: 6px;
-      padding: 4px 10px;
-      border-radius: 999px;
-      font-size: 11px;
-      font-weight: 800;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      background: rgba(245, 183, 0, 0.14);
-      color: var(--accent-gold);
-      border: 1px solid rgba(245, 183, 0, 0.35);
+      gap: 0.55rem;
+      flex-wrap: wrap;
     }
 
-    .vault-badge.unlocked {
-      background: rgba(52, 211, 153, 0.14);
-      color: #34d399;
-      border-color: rgba(52, 211, 153, 0.38);
-    }
-
-    /* Form Controls */
-    input, select, textarea {
+    #pokoVideo {
       width: 100%;
-      padding: 11px 13px;
-      border-radius: var(--radius-sm);
-      border: 1px solid var(--border-subtle);
-      background: var(--bg-elevated);
-      color: var(--text-primary);
-      font-size: 14px;
-      outline: none;
-      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      height: 52vh;
+      min-height: 260px;
+      max-height: 75vh;
+      background: #000;
+      border-radius: 10px;
+      display: block;
+      transition: height 0.25s ease, max-height 0.25s ease;
     }
 
-    input:focus, select:focus, textarea:focus {
-      border-color: var(--accent-crimson);
-      box-shadow: 0 0 0 3px rgba(255, 30, 66, 0.18);
+    #playerSection.large-screen #pokoVideo {
+      height: 82vh;
+      max-height: 88vh;
     }
 
-    textarea {
-      min-height: 82px;
-      resize: vertical;
+    .volume-slider {
+      width: 110px;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    .vol-readout {
+      font-variant-numeric: tabular-nums;
+      font-size: 0.88rem;
+      font-weight: 700;
+      min-width: 3.2rem;
+    }
+
+    .player-status {
+      margin-top: 0.55rem;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    /* Filter & Search Toolbar */
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+    }
+
+    .filter-pills {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .search-input {
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 0.6rem 0.9rem;
+      border-radius: 10px;
+      min-width: 240px;
+      font-size: 0.92rem;
+    }
+
+    /* Catalog Grid */
+    .catalog-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 1rem;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card-thumb {
+      aspect-ratio: 16 / 9;
+      background: #141824;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .card-badge {
+      position: absolute;
+      top: 0.6rem;
+      left: 0.6rem;
+      background: rgba(6, 7, 11, 0.82);
+      border: 1px solid var(--border);
+      padding: 0.2rem 0.55rem;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    .card-body {
+      padding: 0.9rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      flex: 1;
+    }
+
+    .card-title {
+      font-size: 1.02rem;
+      font-weight: 700;
+    }
+
+    .card-desc {
+      font-size: 0.85rem;
+      color: var(--muted);
+      flex: 1;
+    }
+
+    .card-meta {
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    .card-actions {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.35rem;
+    }
+
+    .card-actions .btn {
+      flex: 1;
+      justify-content: center;
+      padding: 0.5rem 0.7rem;
+      font-size: 0.84rem;
+    }
+
+    /* Separate Admin Page Styles */
+    .admin-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .admin-panel h2 {
+      font-size: 1.25rem;
+      margin-bottom: 0.4rem;
+    }
+
+    .admin-panel p.sub {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
     }
 
     .form-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 12px;
+      gap: 0.85rem;
     }
 
-    .key-gate-grid {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 12px;
-      max-width: 540px;
-    }
-
-    @media (max-width: 680px) {
-      .form-grid,
-      .key-gate-grid {
+    @media (max-width: 720px) {
+      .form-grid {
         grid-template-columns: 1fr;
       }
     }
 
-    .span-2 {
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .field.full {
       grid-column: 1 / -1;
     }
 
-    .file-drop-note {
-      font-size: 12px;
-      color: var(--text-secondary);
-      margin-top: 4px;
+    .field label {
+      font-size: 0.82rem;
+      color: var(--muted);
+      font-weight: 600;
     }
 
-    .status-note {
-      margin-top: 10px;
-      font-size: 13px;
-      color: var(--text-secondary);
+    .field input,
+    .field select,
+    .field textarea {
+      background: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.65rem 0.8rem;
+      font-size: 0.92rem;
+      font-family: inherit;
     }
 
-    /* Admin Telemetry Table */
-    .telemetry-wrap {
-      margin-top: 20px;
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-md);
+    .table-wrap {
       overflow-x: auto;
-      background: rgba(6, 7, 11, 0.55);
+      margin-top: 0.85rem;
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
-      min-width: 640px;
+      font-size: 0.88rem;
     }
 
     th, td {
-      padding: 12px 14px;
       text-align: left;
-      border-bottom: 1px solid var(--border-subtle);
-      font-size: 13px;
+      padding: 0.65rem 0.7rem;
+      border-bottom: 1px solid var(--border);
     }
 
     th {
-      color: var(--text-secondary);
-      font-size: 11px;
+      color: var(--muted);
+      font-size: 0.78rem;
       text-transform: uppercase;
-      letter-spacing: 0.08em;
-      background: rgba(255, 255, 255, 0.02);
     }
 
-    tr:last-child td {
-      border-bottom: none;
+    .status-msg {
+      margin-top: 0.75rem;
+      font-size: 0.88rem;
+      color: var(--ok);
     }
 
-    .pill-metric {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 4px 10px;
-      border-radius: 999px;
-      font-weight: 800;
-      font-size: 12px;
+    .status-msg.error {
+      color: #f87171;
     }
 
-    .pill-watch {
-      background: rgba(255, 30, 66, 0.16);
-      color: #ff758f;
-      border: 1px solid rgba(255, 30, 66, 0.35);
-    }
-
-    .pill-download {
-      background: rgba(0, 212, 255, 0.14);
-      color: var(--accent-cyan);
-      border: 1px solid rgba(0, 212, 255, 0.35);
-    }
-
-    /* Search Bar */
-    .search-row {
-      display: grid;
-      grid-template-columns: 1fr 180px auto;
-      gap: 12px;
-    }
-
-    @media (max-width: 720px) {
-      .search-row {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    /* Player Area */
-    #playerArea {
-      margin-top: 20px;
-      padding: 18px;
-      background: var(--bg-elevated);
-      border: 1px solid var(--border-strong);
-      border-radius: var(--radius-md);
-    }
-
-    #playerArea h3 {
-      margin: 0 0 6px;
-      font-size: 18px;
-    }
-
-    video, iframe {
-      width: 100%;
-      height: 440px;
-      margin-top: 10px;
-      background: #000;
-      border: none;
-      border-radius: var(--radius-sm);
-    }
-
-    /* Cards Grid */
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(245px, 1fr));
-      gap: 18px;
-      margin-top: 20px;
-    }
-
-    .card {
-      background: var(--bg-elevated);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-md);
-      padding: 14px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      transition: transform 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease;
-    }
-
-    .card:hover {
-      transform: translateY(-4px);
-      border-color: rgba(255, 30, 66, 0.45);
-      box-shadow: 0 16px 32px rgba(0, 0, 0, 0.45);
-    }
-
-    .card img {
-      width: 100%;
-      height: 270px;
-      aspect-ratio: 2 / 3;
-      object-fit: cover;
-      border-radius: var(--radius-sm);
-      margin-bottom: 10px;
-      background: #090c14;
-    }
-
-    .card h4 {
-      margin: 4px 0;
-      font-size: 15px;
-      font-weight: 800;
-    }
-
-    .card p {
-      margin: 4px 0;
-      font-size: 12px;
-      color: var(--text-secondary);
-    }
-
-    .desc {
-      display: -webkit-box;
-      -webkit-line-clamp: 3;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-      margin-top: 6px !important;
-      line-height: 1.45;
-    }
-
-    .card-meta-stats {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-top: 10px;
-    }
-
-    .card-actions {
-      display: flex;
-      gap: 8px;
-      margin-top: 12px;
-      flex-wrap: wrap;
-    }
-
-    .card-actions > * {
-      flex: 1 1 auto;
-    }
-
-    .badge {
-      display: inline-block;
-      font-size: 10px;
-      font-weight: 800;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      padding: 3px 8px;
-      border-radius: 6px;
-      margin-bottom: 8px;
-      width: fit-content;
-    }
-
-    .badge-poko { background: var(--accent-crimson); color: #fff; }
-    .badge-tmdb { background: #00b4d8; color: #04131c; }
-    .badge-yt { background: #ff2e2e; color: #fff; }
-    .badge-google { background: #3b5bdb; color: #fff; }
-
-    .hidden {
-      display: none !important;
+    pre.export-box {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.85rem;
+      font-size: 0.8rem;
+      overflow-x: auto;
+      color: #cbd5e1;
+      margin-top: 0.75rem;
+      max-height: 260px;
     }
   </style>
 </head>
-<body id="top">
-  <!-- =========================================================
-       NETFLIX-STYLE 'P' + POKO FLIX INTRO OVERLAY
-       ========================================================= -->
-  <div id="introOverlay" aria-label="Poko Flix Intro">
-    <div class="intro-ambient-glow"></div>
-    <button class="skip-intro-btn" type="button" onclick="finishIntro()">Skip Intro</button>
-
-    <div class="intro-stage" id="introStage">
-      <div class="p-emblem-wrap">
-        <div class="intro-sweep"></div>
-        <svg class="p-svg" viewBox="0 0 140 190" aria-hidden="true">
-          <defs>
-            <linearGradient id="pokoPGradBright" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="#ff5a36" />
-              <stop offset="55%" stop-color="#ff1e42" />
-              <stop offset="100%" stop-color="#b80624" />
-            </linearGradient>
-            <linearGradient id="pokoPGradDark" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stop-color="#d40b2d" />
-              <stop offset="100%" stop-color="#690314" />
-            </linearGradient>
-          </defs>
-          <path class="p-ribbon-back" d="M26 14 H56 V176 H26 Z" />
-          <path class="p-ribbon-mid" d="M52 14 H86 C114 14 128 32 128 58 C128 84 114 102 86 102 H52 V76 H82 C94 76 100 69 100 58 C100 47 94 40 82 40 H52 Z" />
-          <path class="p-ribbon-front" d="M22 10 L54 18 V178 L22 170 Z" />
-        </svg>
-      </div>
-      <div class="intro-brand-name">POKO FLIX</div>
-      <div class="intro-tagline">Cinema Without Limits</div>
-    </div>
+<body>
+  <!-- Netflix-style 'P' Intro -->
+  <div id="introOverlay" role="dialog" aria-label="Poko Flix Intro">
+    <div class="p-emblem">P</div>
+    <div class="intro-sub">Poko Flix Originals</div>
+    <button id="skipIntroBtn" type="button">Skip Intro</button>
   </div>
 
-  <!-- =========================================================
-       MAIN DIRECT-ENTRY INTERFACE (NO LOGIN REQUIRED)
-       ========================================================= -->
-  <div class="app-shell" id="appShell">
-    <header class="topbar">
-      <a class="brand-lockup" href="#top">
-        <div class="brand-p-badge">P</div>
-        <div class="brand-text">POKO <span>FLIX</span></div>
+  <!-- Top Header -->
+  <header>
+    <div class="nav-inner">
+      <a href="#home" class="brand" id="brandLink">
+        <span class="brand-badge">P</span>
+        <span>Poko Flix</span>
       </a>
-      <nav class="nav-pills">
-        <a class="nav-pill" href="#catalogSection">Browse Library</a>
-        <a class="nav-pill vault-pill" href="#adminVaultSection">Admin Vault</a>
-        <button class="nav-pill" type="button" onclick="replayIntro()">Replay 'P' Intro</button>
-      </nav>
-    </header>
-
-    <!-- HERO SHOWCASE -->
-    <section class="hero-banner">
-      <div>
-        <span class="hero-eyebrow">Direct Cinema Entry • No Login</span>
-        <h1 class="hero-title">Stream, Download &amp; Manage Poko Flix in One Vault</h1>
-        <p class="hero-desc">
-          Dive straight into movies, series, and trailers. Upload new titles inside the Admin Vault
-          and monitor live viewer counts and downloads across your catalog.
-        </p>
-        <div class="hero-actions">
-          <a class="btn-primary" href="#adminVaultSection" style="text-decoration:none;">Open Admin Vault</a>
-          <a class="btn-secondary" href="#catalogSection" style="text-decoration:none;">Explore Videos</a>
-        </div>
+      <div class="nav-actions">
+        <button type="button" class="btn active" id="navStoreBtn">Storefront</button>
+        <button type="button" class="btn" id="navAdminBtn">Admin Page</button>
       </div>
+    </div>
+  </header>
 
-      <div class="hero-stats-card">
-        <div class="mini-stat">
-          <div class="mini-stat-label">Watching Now</div>
-          <div class="mini-stat-value crimson" id="statWatchingNow">0</div>
-        </div>
-        <div class="mini-stat">
-          <div class="mini-stat-label">Total Watch Sessions</div>
-          <div class="mini-stat-value" id="statTotalViews">0</div>
-        </div>
-        <div class="mini-stat">
-          <div class="mini-stat-label">Total Downloads</div>
-          <div class="mini-stat-value cyan" id="statTotalDownloads">0</div>
-        </div>
-        <div class="mini-stat">
-          <div class="mini-stat-label">Vault Titles</div>
-          <div class="mini-stat-value gold" id="statVaultCount">0</div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ADMIN VAULT (LOCKED BY PRIVATE ADMIN KEY) -->
-    <section class="panel" id="adminVaultSection">
-      <div class="panel-header">
+  <main>
+    <!-- STOREFRONT PAGE -->
+    <section id="storefrontView" class="page-view active">
+      <div class="hero">
         <div>
-          <h2 class="panel-title">Admin Vault</h2>
-          <p class="status-note" id="vaultStateNote" style="margin:4px 0 0;">
-            Locked — only you can open this vault with your Admin Key.
-          </p>
+          <h1>Unlimited Direct Streaming, Zero Login Friction.</h1>
+          <p>Browse movies and series, expand the cinema stage, boost speaker volume on tap, and stream direct HTTPS MP4 titles.</p>
         </div>
-        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-          <span class="vault-badge" id="vaultStatusBadge">Locked</span>
-          <button class="btn-secondary hidden" id="lockVaultBtn" type="button" onclick="lockAdminVault()">
-            Lock Vault
-          </button>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-label">Vault Titles</div>
+            <div class="stat-value" id="statTitles">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Watching Now</div>
+            <div class="stat-value" id="statWatching">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Total Views</div>
+            <div class="stat-value" id="statViews">0</div>
+          </div>
         </div>
       </div>
 
-      <!-- Private Key Gate -->
-      <form id="vaultKeyForm" class="key-gate-grid" onsubmit="event.preventDefault(); unlockAdminVault();">
-        <input
-          id="adminKeyInput"
-          type="password"
-          placeholder="Enter your Admin Vault Key"
-          autocomplete="off"
-          required
-        />
-        <button class="btn-primary" id="unlockVaultBtn" type="submit">Unlock Vault</button>
-      </form>
-      <p id="vaultKeyMsg" class="status-note" aria-live="polite"></p>
-
-      <!-- Protected Vault Body (hidden until unlocked) -->
-      <div id="vaultProtectedBody" class="hidden">
-        <form class="form-grid" onsubmit="event.preventDefault(); uploadMovieToVault();">
-          <input id="cTitle" placeholder="Movie / Series Title" required />
-          <select id="cCat">
-            <option value="movie">Movie</option>
-            <option value="series">Series</option>
-          </select>
-          <input id="cGenre" placeholder="Genre (e.g., Action, Sci-Fi, Thriller)" />
-          <input id="cThumb" placeholder="Poster / Thumbnail URL (optional)" />
-          <input id="cVideo" placeholder="Direct MP4 Video URL (or pick local file below)" />
+      <!-- Player Stage -->
+      <section id="playerSection" aria-label="Video Player">
+        <div class="player-header">
           <div>
-            <input id="cVideoFile" type="file" accept="video/mp4,video/*" />
-            <div class="file-drop-note">Optional: Select a local video file (saved in IndexedDB across reloads).</div>
+            <div class="player-title" id="playerTitle">Select any title to start streaming</div>
+            <div class="player-meta" id="playerMeta">Direct HTTPS MP4 Player</div>
           </div>
-          <textarea class="span-2" id="cDesc" placeholder="Synopsis / Description"></textarea>
-          <div class="span-2" style="display:flex; gap:10px; flex-wrap:wrap;">
-            <button class="btn-primary" type="submit">Upload to Poko Flix Vault</button>
-            <button class="btn-secondary" type="button" onclick="resetVaultForm()">Clear Form</button>
+          <div class="control-group">
+            <button type="button" class="btn" id="largeScreenBtn">Large Screen</button>
+            <button type="button" class="btn btn-primary" id="fullscreenBtn">Fullscreen</button>
           </div>
-        </form>
-        <p id="contentMsg" class="status-note" aria-live="polite"></p>
-
-        <div class="telemetry-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Title</th>
-                <th>Category</th>
-                <th>Watching Now</th>
-                <th>Total Views</th>
-                <th>Downloads</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="adminTelemetryBody">
-              <tr>
-                <td colspan="6" style="color:var(--text-secondary);">Loading video analytics...</td>
-              </tr>
-            </tbody>
-          </table>
         </div>
-      </div>
-    </section>
 
-    <!-- SEARCH & CATALOG SECTION -->
-    <section class="panel" id="catalogSection">
-      <div class="panel-header">
-        <h2 class="panel-title">Poko Flix Catalog &amp; Search</h2>
-      </div>
+        <video
+          id="pokoVideo"
+          controls
+          playsinline
+          preload="metadata"
+        ></video>
 
-      <div class="search-row">
+        <div class="player-controls-bar">
+          <div class="control-group">
+            <button type="button" class="btn btn-primary" id="speakerBtn" title="Tap to increase volume">
+              🔊 Speaker +Vol
+            </button>
+            <span class="vol-readout" id="volReadout">100%</span>
+            <input
+              type="range"
+              id="volumeSlider"
+              class="volume-slider"
+              min="0"
+              max="100"
+              step="5"
+              value="100"
+              aria-label="Volume slider"
+            />
+            <button type="button" class="btn" id="muteToggleBtn">Mute</button>
+          </div>
+          <div class="control-group">
+            <button type="button" class="btn" id="downloadCurrentBtn">Download MP4</button>
+          </div>
+        </div>
+        <div class="player-status" id="playerStatus">Ready. Click Play on any card below.</div>
+      </section>
+
+      <!-- Filters & Search -->
+      <div class="toolbar">
+        <div class="filter-pills" id="categoryPills">
+          <button type="button" class="btn active" data-cat="all">All</button>
+          <button type="button" class="btn" data-cat="movie">Movies</button>
+          <button type="button" class="btn" data-cat="series">Series</button>
+        </div>
         <input
-          id="searchQ"
           type="search"
-          placeholder="Search movies, series, genres, or synopses..."
-          onkeydown="if(event.key==='Enter') searchContent(true)"
+          id="searchInput"
+          class="search-input"
+          placeholder="Search by title, genre, or synopsis..."
+          aria-label="Search catalog"
         />
-        <select id="searchCat">
-          <option value="all">All Categories</option>
-          <option value="movie">Movies</option>
-          <option value="series">Series</option>
-        </select>
-        <button class="btn-primary" type="button" onclick="searchContent(true)">Search</button>
-      </div>
-      <p class="status-note" id="searchStatus" aria-live="polite">
-        Showing Poko Flix Vault library. Add TMDB_API_KEY or YOUTUBE_API_KEY in &lt;script&gt; for expanded external results.
-      </p>
-
-      <!-- PLAYER AREA -->
-      <div id="playerArea" class="hidden">
-        <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
-          <h3 id="nowPlaying"></h3>
-          <button class="btn-secondary" type="button" onclick="closePlayer()">Close Player</button>
-        </div>
-        <p class="status-note" id="playerStatus"></p>
-        <video id="videoPlayer" controls preload="metadata" class="hidden"></video>
-        <iframe
-          id="ytPlayer"
-          class="hidden"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowfullscreen
-        ></iframe>
       </div>
 
-      <div class="grid" id="contentGrid"></div>
+      <!-- Catalog Grid -->
+      <div class="catalog-grid" id="catalogGrid"></div>
     </section>
-  </div>
+
+    <!-- SEPARATE ADMIN PAGE (#admin) -->
+    <section id="adminView" class="page-view" aria-label="Admin Page">
+      <div class="admin-panel" id="adminLockBox">
+        <h2>Poko Flix — Separate Admin Page</h2>
+        <p class="sub">Enter your Admin Vault Key to unlock publishing, telemetry, and default catalog export.</p>
+        <div class="control-group">
+          <input
+            type="password"
+            id="adminKeyInput"
+            class="search-input"
+            placeholder="Enter Admin Vault Key"
+            autocomplete="off"
+          />
+          <button type="button" class="btn btn-primary" id="unlockAdminBtn">Unlock Vault</button>
+          <button type="button" class="btn" id="backToStoreBtn">Back to Storefront</button>
+        </div>
+        <div class="status-msg" id="adminLockStatus"></div>
+      </div>
+
+      <div id="adminUnlockedContent" style="display: none;">
+        <div class="admin-panel">
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:1rem; flex-wrap:wrap;">
+            <div>
+              <h2>Publish Direct MP4 Video</h2>
+              <p class="sub">Paste a direct HTTPS `.mp4` URL for all visitors, or pick a local file for single-device IndexedDB testing.</p>
+            </div>
+            <button type="button" class="btn" id="lockAdminBtn">Lock Vault</button>
+          </div>
+
+          <form id="uploadForm" class="form-grid">
+            <div class="field">
+              <label for="itemTitle">Title *</label>
+              <input type="text" id="itemTitle" required placeholder="e.g. Crimson Horizon" />
+            </div>
+            <div class="field">
+              <label for="itemCategory">Category</label>
+              <select id="itemCategory">
+                <option value="movie">Movie</option>
+                <option value="series">Series</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="itemGenre">Genre</label>
+              <input type="text" id="itemGenre" placeholder="Sci-Fi / Action" />
+            </div>
+            <div class="field">
+              <label for="itemThumb">Poster Image URL (HTTPS)</label>
+              <input type="url" id="itemThumb" placeholder="https://example.com/poster.jpg" />
+            </div>
+            <div class="field full">
+              <label for="itemVideoUrl">Direct MP4 Video URL (HTTPS)</label>
+              <input type="url" id="itemVideoUrl" placeholder="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" />
+            </div>
+            <div class="field full">
+              <label for="itemLocalFile">Or Local Video File (Browser IndexedDB Only)</label>
+              <input type="file" id="itemLocalFile" accept="video/mp4,video/*" />
+            </div>
+            <div class="field full">
+              <label for="itemDesc">Synopsis</label>
+              <textarea id="itemDesc" rows="2" placeholder="Short description of the title..."></textarea>
+            </div>
+            <div class="field full">
+              <div class="control-group">
+                <button type="submit" class="btn btn-primary">Upload to Poko Flix Vault</button>
+              </div>
+            </div>
+          </form>
+          <div class="status-msg" id="uploadStatus"></div>
+        </div>
+
+        <div class="admin-panel">
+          <h2>Live Catalog &amp; Telemetry</h2>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Title</th>
+                  <th>Category</th>
+                  <th>Source</th>
+                  <th>Watching</th>
+                  <th>Views</th>
+                  <th>Downloads</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="adminTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="admin-panel">
+          <h2>Export DEFAULT_ITEMS for GitHub Visitors</h2>
+          <p class="sub">Copy this JSON array into <code>DEFAULT_ITEMS</code> inside <code>index.html</code> and push to GitHub so every visitor sees your published titles.</p>
+          <button type="button" class="btn btn-primary" id="copyExportBtn">Copy DEFAULT_ITEMS JSON</button>
+          <pre class="export-box" id="exportBox"></pre>
+        </div>
+      </div>
+    </section>
+  </main>
 
   <script>
-    // =========================================================
-    // CONFIGURATION
-    // =========================================================
-    const API = 'http://10.255.27.206:5000/api';
-    const TMDB_API_KEY = '';
-    const YOUTUBE_API_KEY = '';
-    const INTRO_DURATION_MS = 2750;
-
-    // Admin Vault Key Gate Configuration
-    // Change ADMIN_VAULT_KEY to your private key.
-    // Note: Client-side checks deter casual access; verify on backend too if untrusted users view page source.
     const ADMIN_VAULT_KEY = 'poko-master-9842';
-    const VAULT_SESSION_KEY = 'poko_vault_unlocked_v1';
-    const MAX_KEY_ATTEMPTS = 3;
-    const LOCKOUT_SECONDS = 20;
-
-    const STORAGE_KEY = 'poko_flix_vault_items_v2';
-    const IDB_NAME = 'poko_flix_media_db';
-    const IDB_STORE = 'videos';
-
-    const FALLBACK_POSTER =
-      'data:image/svg+xml;charset=UTF-8,' +
-      encodeURIComponent(
-        `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="600" viewBox="0 0 400 600">
-          <rect width="400" height="600" fill="#101524"/>
-          <rect x="24" y="24" width="352" height="552" rx="14" fill="none" stroke="#25314d" stroke-width="2"/>
-          <text x="200" y="290" fill="#ff1e42" font-family="sans-serif" font-size="44" font-weight="900" text-anchor="middle">POKO</text>
-          <text x="200" y="334" fill="#9aa3b8" font-family="sans-serif" font-size="14" letter-spacing="4" text-anchor="middle">NO POSTER</text>
-        </svg>`
-      );
+    const STORAGE_KEY = 'poko_flix_vault_v1';
+    const SESSION_ADMIN_KEY = 'poko_flix_admin_unlocked';
+    const DB_NAME = 'poko_flix_media_db';
+    const DB_STORE = 'blobs';
 
     const DEFAULT_ITEMS = [
       {
-        id: 'poko-1',
-        title: 'Crimson Horizon',
+        id: 'poko-bbb',
+        title: 'Big Buck Bunny',
         category: 'movie',
-        genre: 'Sci-Fi • Action',
-        description: 'A deep-space courier intercepts an encrypted signal from a vanished orbital colony.',
-        thumbnailUrl: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=700',
-        videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
+        genre: 'Animation / Comedy',
+        description: 'A large and lovable rabbit deals with three tiny rodents in the forest.',
+        thumbnailUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/BigBuckBunny.jpg',
+        videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
         hasLocalBlob: false,
-        source: 'Poko Flix',
-        watchingNow: 14,
-        totalViews: 428,
-        downloads: 119
+        source: 'Direct HTTPS MP4',
+        watchingNow: 0,
+        totalViews: 14,
+        downloads: 3
       },
       {
-        id: 'poko-2',
-        title: 'Midnight Syndicate',
-        category: 'series',
-        genre: 'Thriller • Crime',
-        description: 'An underground archivist uncovers a web linking neon-lit metro lines to a cold case.',
-        thumbnailUrl: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=700',
-        videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+        id: 'poko-ed',
+        title: 'Elephants Dream',
+        category: 'movie',
+        genre: 'Sci-Fi / Fantasy',
+        description: 'Two strange characters explore a surreal machine world.',
+        thumbnailUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/ElephantsDream.jpg',
+        videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
         hasLocalBlob: false,
-        source: 'Poko Flix',
-        watchingNow: 9,
-        totalViews: 312,
-        downloads: 84
+        source: 'Direct HTTPS MP4',
+        watchingNow: 0,
+        totalViews: 9,
+        downloads: 2
+      },
+      {
+        id: 'poko-sintel',
+        title: 'Sintel — Chapter I',
+        category: 'series',
+        genre: 'Adventure / Drama',
+        description: 'A lonely warrior searches for a lost companion across rugged peaks.',
+        thumbnailUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/Sintel.jpg',
+        videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4',
+        hasLocalBlob: false,
+        source: 'Direct HTTPS MP4',
+        watchingNow: 0,
+        totalViews: 21,
+        downloads: 5
       }
     ];
 
     let vaultItems = [];
-    let renderedItems = [];
-    let currentlyTrackedPlayingId = null;
-    let introDone = false;
-    let introTimer = null;
-    let audioCtx = null;
-    let failedKeyAttempts = 0;
+    let currentCategory = 'all';
+    let currentSearch = '';
+    let activeItemId = null;
+    let activeObjectUrl = null;
+    let failedAttempts = 0;
     let lockoutUntil = 0;
-    let lockoutInterval = null;
-    let searchDebounceTimer = null;
 
-    // =========================================================
-    // BOOTSTRAP
-    // =========================================================
-    window.addEventListener('DOMContentLoaded', async () => {
-      restoreVaultLockState();
-      restoreSearchFromUrl();
-      vaultItems = await loadVaultFromStorage();
-      syncVaultStatsAndTable();
-      searchContent(false);
-      wirePlayerTelemetry();
-      wireSearchListeners();
-      fetchBackendContent();
-      launchIntro();
+    // Intro Animation & Synth
+    function playIntroSynth() {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        const ctx = new AudioCtx();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(110, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(220, ctx.currentTime + 0.55);
+        gain.gain.setValueAtTime(0.08, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.1);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 1.15);
+      } catch (_) {}
+    }
+
+    function dismissIntro() {
+      const overlay = document.getElementById('introOverlay');
+      if (overlay) overlay.classList.add('hidden');
+    }
+
+    document.getElementById('skipIntroBtn').addEventListener('click', dismissIntro);
+    window.addEventListener('load', () => {
+      playIntroSynth();
+      setTimeout(dismissIntro, 1600);
     });
 
-    window.addEventListener('beforeunload', () => {
-      releaseActiveViewer();
+    // Separate Admin Page Routing (#admin vs Storefront)
+    function syncRoute() {
+      const isAdmin = window.location.hash === '#admin';
+      document.getElementById('storefrontView').classList.toggle('active', !isAdmin);
+      document.getElementById('adminView').classList.toggle('active', isAdmin);
+      document.getElementById('navStoreBtn').classList.toggle('active', !isAdmin);
+      document.getElementById('navAdminBtn').classList.toggle('active', isAdmin);
+      if (isAdmin) {
+        updateAdminVisibility();
+      }
+    }
+
+    window.addEventListener('hashchange', syncRoute);
+    document.getElementById('navStoreBtn').addEventListener('click', () => {
+      window.location.hash = '#home';
+      syncRoute();
+    });
+    document.getElementById('navAdminBtn').addEventListener('click', () => {
+      window.location.hash = '#admin';
+      syncRoute();
+    });
+    document.getElementById('backToStoreBtn').addEventListener('click', () => {
+      window.location.hash = '#home';
+      syncRoute();
     });
 
-    window.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && !introDone) {
-        finishIntro();
+    // Storage Helpers
+    function loadVault() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return structuredClone(DEFAULT_ITEMS);
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed) && parsed.length ? parsed : structuredClone(DEFAULT_ITEMS);
+      } catch (_) {
+        return structuredClone(DEFAULT_ITEMS);
       }
-    });
-
-    // =========================================================
-    // ADMIN VAULT KEY GATE
-    // =========================================================
-    function setVaultUnlocked(unlocked) {
-      const keyForm = document.getElementById('vaultKeyForm');
-      const protectedBody = document.getElementById('vaultProtectedBody');
-      const badge = document.getElementById('vaultStatusBadge');
-      const note = document.getElementById('vaultStateNote');
-      const lockBtn = document.getElementById('lockVaultBtn');
-
-      keyForm.classList.toggle('hidden', unlocked);
-      protectedBody.classList.toggle('hidden', !unlocked);
-      lockBtn.classList.toggle('hidden', !unlocked);
-
-      badge.textContent = unlocked ? 'Unlocked' : 'Locked';
-      badge.classList.toggle('unlocked', unlocked);
-      note.textContent = unlocked
-        ? 'Authenticated — upload new titles, manage entries, and monitor live activity.'
-        : 'Locked — only you can open this vault with your Admin Key.';
     }
 
-    function unlockAdminVault() {
-      const input = document.getElementById('adminKeyInput');
-      const btn = document.getElementById('unlockVaultBtn');
-      const msg = document.getElementById('vaultKeyMsg');
-      const now = Date.now();
-
-      if (now < lockoutUntil) {
-        const remaining = Math.ceil((lockoutUntil - now) / 1000);
-        msg.textContent = `Too many attempts. Try again in ${remaining}s.`;
-        return;
-      }
-
-      const entered = input.value.trim();
-      if (entered !== ADMIN_VAULT_KEY) {
-        failedKeyAttempts += 1;
-        input.value = '';
-        input.focus();
-
-        if (failedKeyAttempts >= MAX_KEY_ATTEMPTS) {
-          lockoutUntil = Date.now() + LOCKOUT_SECONDS * 1000;
-          failedKeyAttempts = 0;
-          btn.disabled = true;
-          input.disabled = true;
-          startLockoutCountdown();
-          return;
-        }
-
-        const left = MAX_KEY_ATTEMPTS - failedKeyAttempts;
-        msg.textContent = `Invalid Admin Vault key. ${left} attempt${left === 1 ? '' : 's'} remaining.`;
-        return;
-      }
-
-      failedKeyAttempts = 0;
-      lockoutUntil = 0;
-      clearInterval(lockoutInterval);
-      btn.disabled = false;
-      input.disabled = false;
-      input.value = '';
-      msg.textContent = '';
-
-      sessionStorage.setItem(VAULT_SESSION_KEY, '1');
-      setVaultUnlocked(true);
+    function saveVault() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(vaultItems));
+      } catch (_) {}
     }
 
-    function startLockoutCountdown() {
-      const input = document.getElementById('adminKeyInput');
-      const btn = document.getElementById('unlockVaultBtn');
-      const msg = document.getElementById('vaultKeyMsg');
-
-      clearInterval(lockoutInterval);
-      const tick = () => {
-        const rem = Math.ceil((lockoutUntil - Date.now()) / 1000);
-        if (rem <= 0) {
-          clearInterval(lockoutInterval);
-          btn.disabled = false;
-          input.disabled = false;
-          msg.textContent = 'You may try entering your Admin Vault Key again.';
-          input.focus();
-        } else {
-          msg.textContent = `Vault temporarily locked due to failed attempts. Retry in ${rem}s.`;
-        }
-      };
-      tick();
-      lockoutInterval = setInterval(tick, 500);
-    }
-
-    function lockAdminVault() {
-      sessionStorage.removeItem(VAULT_SESSION_KEY);
-      document.getElementById('vaultKeyMsg').textContent = 'Vault locked.';
-      setVaultUnlocked(false);
-    }
-
-    function restoreVaultLockState() {
-      const isUnlocked = sessionStorage.getItem(VAULT_SESSION_KEY) === '1';
-      setVaultUnlocked(isUnlocked);
-    }
-
-    // =========================================================
-    // INDEXEDDB + LOCALSTORAGE PERSISTENCE
-    // =========================================================
-    function openMediaDb() {
+    function openMediaDB() {
       return new Promise((resolve, reject) => {
-        if (!('indexedDB' in window)) {
-          reject(new Error('IndexedDB unavailable'));
-          return;
-        }
-        const req = indexedDB.open(IDB_NAME, 1);
+        const req = indexedDB.open(DB_NAME, 1);
         req.onupgradeneeded = () => {
-          const db = req.result;
-          if (!db.objectStoreNames.contains(IDB_STORE)) {
-            db.createObjectStore(IDB_STORE, { keyPath: 'id' });
+          if (!req.result.objectStoreNames.contains(DB_STORE)) {
+            req.result.createObjectStore(DB_STORE);
           }
         };
         req.onsuccess = () => resolve(req.result);
@@ -1231,222 +906,331 @@
       });
     }
 
-    async function saveBlobToDb(id, blob) {
-      try {
-        const db = await openMediaDb();
-        await new Promise((resolve, reject) => {
-          const tx = db.transaction(IDB_STORE, 'readwrite');
-          tx.objectStore(IDB_STORE).put({ id, blob });
-          tx.oncomplete = resolve;
-          tx.onerror = () => reject(tx.error);
-        });
-      } catch {
-        // Ignore if IndexedDB blocked
-      }
-    }
-
-    async function deleteBlobFromDb(id) {
-      try {
-        const db = await openMediaDb();
-        await new Promise((resolve, reject) => {
-          const tx = db.transaction(IDB_STORE, 'readwrite');
-          tx.objectStore(IDB_STORE).delete(id);
-          tx.oncomplete = resolve;
-          tx.onerror = () => reject(tx.error);
-        });
-      } catch {
-        // Ignore
-      }
-    }
-
-    async function getBlobFromDb(id) {
-      try {
-        const db = await openMediaDb();
-        return await new Promise((resolve, reject) => {
-          const tx = db.transaction(IDB_STORE, 'readonly');
-          const req = tx.objectStore(IDB_STORE).get(id);
-          req.onsuccess = () => resolve(req.result ? req.result.blob : null);
-          req.onerror = () => reject(req.error);
-        });
-      } catch {
-        return null;
-      }
-    }
-
-    async function loadVaultFromStorage() {
-      try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        const base = raw ? JSON.parse(raw) : structuredClone(DEFAULT_ITEMS);
-        const items = Array.isArray(base) && base.length ? base : structuredClone(DEFAULT_ITEMS);
-
-        for (const item of items) {
-          if (item.hasLocalBlob) {
-            const blob = await getBlobFromDb(item.id);
-            item.videoUrl = blob ? URL.createObjectURL(blob) : '';
-          }
-        }
-        return items;
-      } catch {
-        return structuredClone(DEFAULT_ITEMS);
-      }
-    }
-
-    function saveVaultToStorage() {
-      try {
-        const serializable = vaultItems.map(item => ({
-          ...item,
-          videoUrl: item.hasLocalBlob ? '' : item.videoUrl
-        }));
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(serializable));
-      } catch {
-        // Ignore storage quota errors
-      }
-    }
-
-    // =========================================================
-    // NETFLIX-STYLE 'P' INTRO + AUTO SOUND
-    // =========================================================
-    function launchIntro() {
-      introDone = false;
-      const overlay = document.getElementById('introOverlay');
-      const stage = document.getElementById('introStage');
-
-      overlay.classList.remove('fade-out');
-      stage.style.animation = 'none';
-      void stage.offsetWidth;
-      stage.style.animation = '';
-
-      playIntroSound();
-
-      clearTimeout(introTimer);
-      introTimer = setTimeout(() => finishIntro(), INTRO_DURATION_MS);
-    }
-
-    function replayIntro() {
-      const shell = document.getElementById('appShell');
-      shell.classList.remove('visible');
-      launchIntro();
-    }
-
-    function finishIntro() {
-      if (introDone) return;
-      introDone = true;
-      clearTimeout(introTimer);
-      const overlay = document.getElementById('introOverlay');
-      const shell = document.getElementById('appShell');
-      overlay.classList.add('fade-out');
-      shell.classList.add('visible');
-    }
-
-    function playIntroSound() {
-      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-      if (!AudioContextClass) return;
-
-      if (!audioCtx) {
-        audioCtx = new AudioContextClass();
-      }
-
-      if (audioCtx.state === 'suspended') {
-        audioCtx.resume().catch(() => {});
-      }
-      scheduleCinemaTaDum(audioCtx);
-
-      const unlock = () => {
-        if (audioCtx && audioCtx.state === 'suspended') {
-          audioCtx.resume().catch(() => {});
-        }
-        window.removeEventListener('pointerdown', unlock);
-        window.removeEventListener('keydown', unlock);
-      };
-      window.addEventListener('pointerdown', unlock, { once: true });
-      window.addEventListener('keydown', unlock, { once: true });
-    }
-
-    function scheduleCinemaTaDum(ctx) {
-      const now = ctx.currentTime + 0.04;
-
-      function triggerImpact(startTime, startFreq, endFreq, duration, peakGain) {
-        const osc = ctx.createOscillator();
-        const sub = ctx.createOscillator();
-        const gain = ctx.createGain();
-        const filter = ctx.createBiquadFilter();
-
-        osc.type = 'sawtooth';
-        sub.type = 'sine';
-
-        osc.frequency.setValueAtTime(startFreq, startTime);
-        osc.frequency.exponentialRampToValueAtTime(endFreq, startTime + duration);
-
-        sub.frequency.setValueAtTime(startFreq * 0.5, startTime);
-        sub.frequency.exponentialRampToValueAtTime(endFreq * 0.5, startTime + duration);
-
-        filter.type = 'lowpass';
-        filter.frequency.setValueAtTime(320, startTime);
-        filter.frequency.exponentialRampToValueAtTime(68, startTime + duration);
-
-        gain.gain.setValueAtTime(0.0001, startTime);
-        gain.gain.linearRampToValueAtTime(peakGain, startTime + 0.025);
-        gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
-
-        osc.connect(filter);
-        sub.connect(filter);
-        filter.connect(gain);
-        gain.connect(ctx.destination);
-
-        osc.start(startTime);
-        sub.start(startTime);
-        osc.stop(startTime + duration + 0.05);
-        sub.stop(startTime + duration + 0.05);
-      }
-
-      // First hit ("Ta")
-      triggerImpact(now, 145, 52, 0.36, 0.42);
-      // Second hit ("Dum")
-      triggerImpact(now + 0.42, 110, 34, 1.35, 0.55);
-    }
-
-    // =========================================================
-    // VAULT UPLOAD, DELETION & TELEMETRY
-    // =========================================================
-    function resetVaultForm() {
-      ['cTitle', 'cGenre', 'cThumb', 'cVideo', 'cVideoFile', 'cDesc'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.value = '';
+    async function saveBlobToDB(id, file) {
+      const db = await openMediaDB();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(DB_STORE, 'readwrite');
+        tx.objectStore(DB_STORE).put(file, id);
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
       });
-      document.getElementById('cCat').value = 'movie';
-      document.getElementById('contentMsg').textContent = '';
     }
 
-    async function uploadMovieToVault() {
-      if (sessionStorage.getItem(VAULT_SESSION_KEY) !== '1') {
-        document.getElementById('contentMsg').textContent = 'Unlock Admin Vault first.';
+    async function getBlobFromDB(id) {
+      const db = await openMediaDB();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(DB_STORE, 'readonly');
+        const req = tx.objectStore(DB_STORE).get(id);
+        req.onsuccess = () => resolve(req.result || null);
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    // Player Controls: Large Screen, Fullscreen, Speaker Volume Boost
+    const playerSection = document.getElementById('playerSection');
+    const pokoVideo = document.getElementById('pokoVideo');
+    const largeScreenBtn = document.getElementById('largeScreenBtn');
+    const fullscreenBtn = document.getElementById('fullscreenBtn');
+    const speakerBtn = document.getElementById('speakerBtn');
+    const volumeSlider = document.getElementById('volumeSlider');
+    const volReadout = document.getElementById('volReadout');
+    const muteToggleBtn = document.getElementById('muteToggleBtn');
+    const playerStatus = document.getElementById('playerStatus');
+
+    function syncVolumeUI() {
+      const pct = pokoVideo.muted ? 0 : Math.round(pokoVideo.volume * 100);
+      volReadout.textContent = pct + '%';
+      volumeSlider.value = String(pct);
+      speakerBtn.textContent = pokoVideo.muted || pct === 0 ? '🔇 Speaker +Vol' : '🔊 Speaker +Vol';
+    }
+
+    // Tapping Speaker button unmutes and increases volume by +25%
+    speakerBtn.addEventListener('click', () => {
+      pokoVideo.muted = false;
+      const next = Math.min(1, Number((pokoVideo.volume + 0.25).toFixed(2)));
+      pokoVideo.volume = next === 0 ? 0.25 : next;
+      syncVolumeUI();
+      playerStatus.textContent = 'Speaker volume set to ' + Math.round(pokoVideo.volume * 100) + '%.';
+    });
+
+    volumeSlider.addEventListener('input', () => {
+      const val = Number(volumeSlider.value) / 100;
+      pokoVideo.muted = val === 0;
+      pokoVideo.volume = val;
+      syncVolumeUI();
+    });
+
+    muteToggleBtn.addEventListener('click', () => {
+      pokoVideo.muted = !pokoVideo.muted;
+      syncVolumeUI();
+    });
+
+    // Large Screen (Theater Mode)
+    largeScreenBtn.addEventListener('click', () => {
+      const isLarge = playerSection.classList.toggle('large-screen');
+      largeScreenBtn.classList.toggle('active', isLarge);
+      largeScreenBtn.textContent = isLarge ? 'Normal Screen' : 'Large Screen';
+    });
+
+    // Fullscreen (synchronous inside click handler)
+    fullscreenBtn.addEventListener('click', () => {
+      const fsEl = document.fullscreenElement || document.webkitFullscreenElement;
+      if (fsEl) {
+        if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
+        else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+        return;
+      }
+      if (playerSection.requestFullscreen) {
+        playerSection.requestFullscreen().catch(() => {
+          if (pokoVideo.webkitEnterFullscreen) pokoVideo.webkitEnterFullscreen();
+        });
+      } else if (playerSection.webkitRequestFullscreen) {
+        playerSection.webkitRequestFullscreen();
+      } else if (pokoVideo.webkitEnterFullscreen) {
+        pokoVideo.webkitEnterFullscreen();
+      }
+    });
+
+    pokoVideo.addEventListener('error', () => {
+      const code = pokoVideo.error ? pokoVideo.error.code : 0;
+      playerStatus.textContent = 'Video error (code ' + code + '). Check that the URL is a direct HTTPS .mp4 link.';
+    });
+
+    pokoVideo.addEventListener('play', () => {
+      if (!activeItemId) return;
+      const item = vaultItems.find((x) => x.id === activeItemId);
+      if (item) {
+        item.watchingNow = 1;
+        saveVault();
+        renderStats();
+        renderAdminTable();
+      }
+    });
+
+    function stopCurrentWatching() {
+      if (!activeItemId) return;
+      const item = vaultItems.find((x) => x.id === activeItemId);
+      if (item && item.watchingNow > 0) {
+        item.watchingNow = 0;
+        saveVault();
+        renderStats();
+        renderAdminTable();
+      }
+    }
+
+    pokoVideo.addEventListener('pause', stopCurrentWatching);
+    pokoVideo.addEventListener('ended', stopCurrentWatching);
+
+    async function playItem(id) {
+      const item = vaultItems.find((x) => x.id === id);
+      if (!item) return;
+
+      stopCurrentWatching();
+      activeItemId = item.id;
+      item.totalViews = (item.totalViews || 0) + 1;
+      saveVault();
+
+      document.getElementById('playerTitle').textContent = item.title;
+      document.getElementById('playerMeta').textContent = item.category.toUpperCase() + ' • ' + (item.genre || 'General');
+      playerStatus.textContent = 'Loading stream...';
+
+      if (activeObjectUrl) {
+        URL.revokeObjectURL(activeObjectUrl);
+        activeObjectUrl = null;
+      }
+
+      let srcUrl = item.videoUrl || '';
+      if (item.hasLocalBlob) {
+        const blob = await getBlobFromDB(item.id);
+        if (blob) {
+          activeObjectUrl = URL.createObjectURL(blob);
+          srcUrl = activeObjectUrl;
+        }
+      }
+
+      if (!srcUrl) {
+        playerStatus.textContent = 'No video URL attached to this title.';
+        renderStats();
         return;
       }
 
-      const title = document.getElementById('cTitle').value.trim();
-      const category = document.getElementById('cCat').value;
-      const genre = document.getElementById('cGenre').value.trim() || 'Cinema';
-      const thumbnailUrl = document.getElementById('cThumb').value.trim() || FALLBACK_POSTER;
-      const fileInput = document.getElementById('cVideoFile');
-      const localFile = fileInput.files && fileInput.files[0];
-      const videoUrl = localFile
-        ? URL.createObjectURL(localFile)
-        : document.getElementById('cVideo').value.trim();
-      const description =
-        document.getElementById('cDesc').value.trim() || 'Added directly via Poko Flix Admin Vault.';
+      pokoVideo.src = srcUrl;
+      pokoVideo.load();
+      pokoVideo.play()
+        .then(() => {
+          playerStatus.textContent = 'Streaming: ' + item.title;
+        })
+        .catch((err) => {
+          playerStatus.textContent = 'Playback blocked or failed (' + err.message + '). Tap play on the video controls.';
+        });
 
-      const msgEl = document.getElementById('contentMsg');
-      if (!title) {
-        msgEl.textContent = 'Please enter a title before uploading.';
+      renderStats();
+      renderAdminTable();
+      playerSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function downloadItem(id) {
+      const item = vaultItems.find((x) => x.id === id);
+      if (!item || !item.videoUrl) return;
+      item.downloads = (item.downloads || 0) + 1;
+      saveVault();
+      renderAdminTable();
+
+      const a = document.createElement('a');
+      a.href = item.videoUrl;
+      a.download = (item.title || 'poko-flix') + '.mp4';
+      a.target = '_blank';
+      a.rel = 'noopener';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }
+
+    document.getElementById('downloadCurrentBtn').addEventListener('click', () => {
+      if (activeItemId) downloadItem(activeItemId);
+    });
+
+    // Storefront Rendering
+    function renderStats() {
+      document.getElementById('statTitles').textContent = String(vaultItems.length);
+      const watching = vaultItems.reduce((sum, x) => sum + (x.watchingNow || 0), 0);
+      const views = vaultItems.reduce((sum, x) => sum + (x.totalViews || 0), 0);
+      document.getElementById('statWatching').textContent = String(watching);
+      document.getElementById('statViews').textContent = String(views);
+    }
+
+    function renderCatalog() {
+      const grid = document.getElementById('catalogGrid');
+      const q = currentSearch.trim().toLowerCase();
+
+      const filtered = vaultItems.filter((item) => {
+        const matchesCat = currentCategory === 'all' || item.category === currentCategory;
+        const hay = (item.title + ' ' + item.genre + ' ' + item.description).toLowerCase();
+        const matchesSearch = !q || hay.includes(q);
+        return matchesCat && matchesSearch;
+      });
+
+      if (!filtered.length) {
+        grid.innerHTML = '<p style="color:var(--muted)">No matching titles found.</p>';
+        return;
+      }
+
+      grid.innerHTML = filtered.map((item) => {
+        const thumb = item.thumbnailUrl || 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/BigBuckBunny.jpg';
+        return `
+          <article class="card">
+            <div class="card-thumb">
+              <img src="${escapeAttr(thumb)}" alt="${escapeAttr(item.title)}" loading="lazy" />
+              <span class="card-badge">${escapeHtml(item.category)}</span>
+            </div>
+            <div class="card-body">
+              <div class="card-title">${escapeHtml(item.title)}</div>
+              <div class="card-meta">${escapeHtml(item.genre || 'General')} • ${item.totalViews || 0} views</div>
+              <div class="card-desc">${escapeHtml(item.description || '')}</div>
+              <div class="card-actions">
+                <button type="button" class="btn btn-primary" data-play="${escapeAttr(item.id)}">Play</button>
+                <button type="button" class="btn" data-dl="${escapeAttr(item.id)}">Download</button>
+              </div>
+            </div>
+          </article>
+        `;
+      }).join('');
+
+      grid.querySelectorAll('[data-play]').forEach((btn) => {
+        btn.addEventListener('click', () => playItem(btn.getAttribute('data-play')));
+      });
+      grid.querySelectorAll('[data-dl]').forEach((btn) => {
+        btn.addEventListener('click', () => downloadItem(btn.getAttribute('data-dl')));
+      });
+    }
+
+    document.getElementById('categoryPills').addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-cat]');
+      if (!btn) return;
+      currentCategory = btn.getAttribute('data-cat');
+      document.querySelectorAll('#categoryPills [data-cat]').forEach((b) => {
+        b.classList.toggle('active', b === btn);
+      });
+      renderCatalog();
+    });
+
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+      currentSearch = e.target.value;
+      renderCatalog();
+    });
+
+    // Separate Admin Page Logic
+    function isAdminUnlocked() {
+      return sessionStorage.getItem(SESSION_ADMIN_KEY) === '1';
+    }
+
+    function updateAdminVisibility() {
+      const unlocked = isAdminUnlocked();
+      document.getElementById('adminUnlockedContent').style.display = unlocked ? 'block' : 'none';
+      document.getElementById('adminLockBox').style.display = unlocked ? 'none' : 'block';
+      if (unlocked) {
+        renderAdminTable();
+        renderExportBox();
+      }
+    }
+
+    document.getElementById('unlockAdminBtn').addEventListener('click', () => {
+      const now = Date.now();
+      const statusEl = document.getElementById('adminLockStatus');
+      if (now < lockoutUntil) {
+        statusEl.textContent = 'Too many attempts. Wait a few seconds.';
+        statusEl.className = 'status-msg error';
+        return;
+      }
+
+      const entered = document.getElementById('adminKeyInput').value.trim();
+      if (entered === ADMIN_VAULT_KEY) {
+        failedAttempts = 0;
+        sessionStorage.setItem(SESSION_ADMIN_KEY, '1');
+        statusEl.textContent = '';
+        updateAdminVisibility();
+      } else {
+        failedAttempts += 1;
+        if (failedAttempts >= 3) {
+          lockoutUntil = Date.now() + 10000;
+          failedAttempts = 0;
+        }
+        statusEl.textContent = 'Invalid Admin Vault Key.';
+        statusEl.className = 'status-msg error';
+      }
+    });
+
+    document.getElementById('lockAdminBtn').addEventListener('click', () => {
+      sessionStorage.removeItem(SESSION_ADMIN_KEY);
+      document.getElementById('adminKeyInput').value = '';
+      updateAdminVisibility();
+    });
+
+    document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const statusEl = document.getElementById('uploadStatus');
+      const title = document.getElementById('itemTitle').value.trim();
+      const category = document.getElementById('itemCategory').value;
+      const genre = document.getElementById('itemGenre').value.trim() || 'General';
+      const thumbnailUrl = document.getElementById('itemThumb').value.trim();
+      const videoUrl = document.getElementById('itemVideoUrl').value.trim();
+      const description = document.getElementById('itemDesc').value.trim();
+      const localFile = document.getElementById('itemLocalFile').files[0];
+
+      if (!title || (!videoUrl && !localFile)) {
+        statusEl.textContent = 'Provide a title and either a Direct MP4 Video URL or a local file.';
+        statusEl.className = 'status-msg error';
         return;
       }
 
       const id = 'poko-' + Date.now();
+      let hasLocalBlob = false;
       if (localFile) {
-        await saveBlobToDb(id, localFile);
+        await saveBlobToDB(id, localFile);
+        hasLocalBlob = true;
       }
 
-      const newItem = {
+      vaultItems.unshift({
         id,
         title,
         category,
@@ -1454,331 +1238,72 @@
         description,
         thumbnailUrl,
         videoUrl,
-        hasLocalBlob: Boolean(localFile),
-        source: 'Poko Flix',
+        hasLocalBlob,
+        source: hasLocalBlob ? 'IndexedDB (Local)' : 'Direct HTTPS MP4',
         watchingNow: 0,
         totalViews: 0,
         downloads: 0
-      };
+      });
 
-      vaultItems.unshift(newItem);
-      saveVaultToStorage();
-      syncVaultStatsAndTable();
-      searchContent(false);
-      resetVaultForm();
+      saveVault();
+      renderStats();
+      renderCatalog();
+      renderAdminTable();
+      renderExportBox();
 
-      msgEl.textContent = `Published "${title}" to Poko Flix Vault.`;
+      e.target.reset();
+      statusEl.textContent = 'Published "' + title + '" to Poko Flix Vault.';
+      statusEl.className = 'status-msg';
+    });
 
-      // Non-blocking backend sync
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 2500);
-      try {
-        await fetch(`${API}/content`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ title, category, genre, description, thumbnailUrl, videoUrl: localFile ? '' : videoUrl }),
-          signal: controller.signal
+    function renderAdminTable() {
+      const tbody = document.getElementById('adminTableBody');
+      if (!tbody) return;
+      tbody.innerHTML = vaultItems.map((item) => `
+        <tr>
+          <td>${escapeHtml(item.title)}</td>
+          <td>${escapeHtml(item.category)}</td>
+          <td>${escapeHtml(item.source || 'Direct')}</td>
+          <td>${item.watchingNow || 0}</td>
+          <td>${item.totalViews || 0}</td>
+          <td>${item.downloads || 0}</td>
+          <td>
+            <button type="button" class="btn" data-del="${escapeAttr(item.id)}">Remove</button>
+          </td>
+        </tr>
+      `).join('');
+
+      tbody.querySelectorAll('[data-del]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const delId = btn.getAttribute('data-del');
+          vaultItems = vaultItems.filter((x) => x.id !== delId);
+          saveVault();
+          renderStats();
+          renderCatalog();
+          renderAdminTable();
+          renderExportBox();
         });
-      } catch {
-        // Local vault remains active offline
-      } finally {
-        clearTimeout(timeout);
-      }
-    }
-
-    async function deleteVaultItem(id) {
-      if (sessionStorage.getItem(VAULT_SESSION_KEY) !== '1') return;
-      if (currentlyTrackedPlayingId === id) {
-        closePlayer();
-      }
-      vaultItems = vaultItems.filter(item => item.id !== id);
-      await deleteBlobFromDb(id);
-      saveVaultToStorage();
-      syncVaultStatsAndTable();
-      searchContent(false);
-    }
-
-    function syncVaultStatsAndTable() {
-      const watchingNow = vaultItems.reduce((sum, i) => sum + (Number(i.watchingNow) || 0), 0);
-      const totalViews = vaultItems.reduce((sum, i) => sum + (Number(i.totalViews) || 0), 0);
-      const totalDownloads = vaultItems.reduce((sum, i) => sum + (Number(i.downloads) || 0), 0);
-
-      document.getElementById('statWatchingNow').textContent = watchingNow;
-      document.getElementById('statTotalViews').textContent = totalViews;
-      document.getElementById('statTotalDownloads').textContent = totalDownloads;
-      document.getElementById('statVaultCount').textContent = vaultItems.length;
-
-      const tbody = document.getElementById('adminTelemetryBody');
-      if (!vaultItems.length) {
-        tbody.innerHTML = `<tr><td colspan="6" style="color:var(--text-secondary);">No titles in vault yet.</td></tr>`;
-        return;
-      }
-
-      tbody.innerHTML = vaultItems
-        .map(
-          item => `
-            <tr>
-              <td><strong>${escapeHtml(item.title)}</strong></td>
-              <td style="text-transform:capitalize;">${escapeHtml(item.category)}</td>
-              <td><span class="pill-metric pill-watch">● ${Number(item.watchingNow) || 0} live</span></td>
-              <td>${Number(item.totalViews) || 0}</td>
-              <td><span class="pill-metric pill-download">↓ ${Number(item.downloads) || 0}</span></td>
-              <td>
-                <button class="btn-danger" type="button" onclick="deleteVaultItem('${escapeAttr(item.id)}')">
-                  Remove
-                </button>
-              </td>
-            </tr>
-          `
-        )
-        .join('');
-    }
-
-    async function fetchBackendContent() {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 2500);
-      try {
-        const res = await fetch(`${API}/content`, { signal: controller.signal });
-        if (!res.ok) return;
-        const data = await res.json();
-        if (Array.isArray(data) && data.length) {
-          const existingIds = new Set(vaultItems.map(i => i.id));
-          const merged = data
-            .filter(d => d && d.title && !existingIds.has(d.id))
-            .map(d => ({
-              id: d.id || 'api-' + Math.random().toString(36).slice(2, 8),
-              title: d.title,
-              category: d.category || 'movie',
-              genre: d.genre || 'Cinema',
-              description: d.description || '',
-              thumbnailUrl: d.thumbnailUrl || FALLBACK_POSTER,
-              videoUrl: d.videoUrl || '',
-              hasLocalBlob: false,
-              source: 'Poko Flix',
-              watchingNow: Number(d.watchingNow) || 0,
-              totalViews: Number(d.totalViews) || 0,
-              downloads: Number(d.downloads) || 0
-            }));
-          if (merged.length) {
-            vaultItems = [...merged, ...vaultItems];
-            saveVaultToStorage();
-            syncVaultStatsAndTable();
-            searchContent(false);
-          }
-        }
-      } catch {
-        // Keep local catalog active
-      } finally {
-        clearTimeout(timeout);
-      }
-    }
-
-    // =========================================================
-    // SEARCH, RENDERING & PLAYBACK
-    // =========================================================
-    function wireSearchListeners() {
-      const qInput = document.getElementById('searchQ');
-      const catSelect = document.getElementById('searchCat');
-
-      qInput.addEventListener('input', () => {
-        clearTimeout(searchDebounceTimer);
-        searchDebounceTimer = setTimeout(() => searchContent(true), 120);
       });
-
-      catSelect.addEventListener('change', () => searchContent(true));
     }
 
-    function restoreSearchFromUrl() {
-      const params = new URLSearchParams(location.search);
-      const q = params.get('q') || '';
-      const cat = params.get('cat') || 'all';
-      document.getElementById('searchQ').value = q;
-      document.getElementById('searchCat').value = ['all', 'movie', 'series'].includes(cat) ? cat : 'all';
+    function renderExportBox() {
+      const box = document.getElementById('exportBox');
+      if (!box) return;
+      const exportable = vaultItems.map(({ hasLocalBlob, watchingNow, ...rest }) => ({
+        ...rest,
+        hasLocalBlob: false,
+        watchingNow: 0
+      }));
+      box.textContent = 'const DEFAULT_ITEMS = ' + JSON.stringify(exportable, null, 2) + ';';
     }
 
-    function syncSearchToUrl(q, cat) {
-      const params = new URLSearchParams();
-      if (q) params.set('q', q);
-      if (cat && cat !== 'all') params.set('cat', cat);
-      const qs = params.toString();
-      history.replaceState(null, '', qs ? `?${qs}` : location.pathname);
-    }
-
-    function searchContent(updateUrl = true) {
-      const q = document.getElementById('searchQ').value.trim().toLowerCase();
-      const cat = document.getElementById('searchCat').value;
-
-      if (updateUrl) {
-        syncSearchToUrl(q, cat);
-      }
-
-      const matches = vaultItems.filter(item => {
-        const catOk = cat === 'all' || item.category === cat;
-        const textOk =
-          !q ||
-          item.title.toLowerCase().includes(q) ||
-          (item.genre && item.genre.toLowerCase().includes(q)) ||
-          (item.description && item.description.toLowerCase().includes(q));
-        return catOk && textOk;
-      });
-
-      document.getElementById('searchStatus').textContent =
-        `Showing ${matches.length} title${matches.length === 1 ? '' : 's'} in Poko Flix Vault.`;
-      renderCards(matches);
-    }
-
-    function renderCards(items) {
-      renderedItems = items;
-      const grid = document.getElementById('contentGrid');
-      if (!items.length) {
-        grid.innerHTML = `<p class="status-note">No matching titles found. Try another keyword or upload one in Admin Vault.</p>`;
-        return;
-      }
-
-      grid.innerHTML = items
-        .map((item, idx) => {
-          const badgeClass =
-            item.source === 'YouTube'
-              ? 'badge-yt'
-              : item.source === 'TMDB'
-              ? 'badge-tmdb'
-              : 'badge-poko';
-          return `
-            <article class="card">
-              <div>
-                <span class="badge ${badgeClass}">${escapeHtml(item.source || 'Poko Flix')}</span>
-                <img
-                  src="${escapeAttr(item.thumbnailUrl || FALLBACK_POSTER)}"
-                  alt="${escapeAttr(item.title)}"
-                  loading="lazy"
-                  decoding="async"
-                  onerror="this.onerror=null;this.src='${FALLBACK_POSTER}';"
-                />
-                <h4>${escapeHtml(item.title)}</h4>
-                <p>${escapeHtml(item.category)} • ${escapeHtml(item.genre || 'Cinema')}</p>
-                <p class="desc">${escapeHtml(item.description || '')}</p>
-                <div class="card-meta-stats">
-                  <span class="pill-metric pill-watch">● ${Number(item.watchingNow) || 0} watching</span>
-                  <span class="pill-metric pill-download">↓ ${Number(item.downloads) || 0}</span>
-                </div>
-              </div>
-              <div class="card-actions">
-                <button class="btn-primary" type="button" onclick="playItem(${idx})">Play</button>
-                <button class="btn-download" type="button" onclick="downloadItem(${idx})">Download</button>
-              </div>
-            </article>
-          `;
-        })
-        .join('');
-    }
-
-    function releaseActiveViewer() {
-      if (!currentlyTrackedPlayingId) return;
-      const item = vaultItems.find(i => i.id === currentlyTrackedPlayingId);
-      currentlyTrackedPlayingId = null;
-      if (!item) return;
-      item.watchingNow = Math.max(0, (Number(item.watchingNow) || 1) - 1);
-      saveVaultToStorage();
-      syncVaultStatsAndTable();
-      searchContent(false);
-    }
-
-    function wirePlayerTelemetry() {
-      const video = document.getElementById('videoPlayer');
-
-      video.addEventListener('play', () => {
-        const activeId = video.dataset.itemId;
-        if (!activeId || currentlyTrackedPlayingId === activeId) return;
-        releaseActiveViewer();
-        const item = vaultItems.find(i => i.id === activeId);
-        if (!item) return;
-        currentlyTrackedPlayingId = activeId;
-        item.watchingNow = (Number(item.watchingNow) || 0) + 1;
-        item.totalViews = (Number(item.totalViews) || 0) + 1;
-        saveVaultToStorage();
-        syncVaultStatsAndTable();
-        searchContent(false);
-      });
-
-      video.addEventListener('pause', releaseActiveViewer);
-      video.addEventListener('ended', releaseActiveViewer);
-    }
-
-    function closePlayer() {
-      releaseActiveViewer();
-      const video = document.getElementById('videoPlayer');
-      const iframe = document.getElementById('ytPlayer');
-      video.pause();
-      video.removeAttribute('src');
-      delete video.dataset.itemId;
-      video.classList.add('hidden');
-      iframe.src = '';
-      iframe.classList.add('hidden');
-      document.getElementById('playerArea').classList.add('hidden');
-    }
-
-    function playItem(idx) {
-      const item = renderedItems[idx];
-      if (!item) return;
-
-      releaseActiveViewer();
-
-      const playerArea = document.getElementById('playerArea');
-      const nowPlaying = document.getElementById('nowPlaying');
-      const playerStatus = document.getElementById('playerStatus');
-      const video = document.getElementById('videoPlayer');
-      const iframe = document.getElementById('ytPlayer');
-
-      playerArea.classList.remove('hidden');
-      nowPlaying.textContent = `${item.title} (${item.category})`;
-
-      iframe.classList.add('hidden');
-      iframe.src = '';
-
-      if (item.videoUrl) {
-        video.dataset.itemId = item.id;
-        video.classList.remove('hidden');
-        video.src = item.videoUrl;
-        playerStatus.textContent = `Streaming from ${item.source || 'Poko Flix'}.`;
-        video.play().catch(() => {
-          playerStatus.textContent = 'Ready — click Play on the video controls to start.';
-        });
-      } else {
-        delete video.dataset.itemId;
-        video.classList.add('hidden');
-        video.removeAttribute('src');
-        playerStatus.textContent = 'No direct video stream attached to this entry yet.';
-      }
-
-      playerArea.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
-
-    function downloadItem(idx) {
-      const item = renderedItems[idx];
-      if (!item) return;
-
-      const target = vaultItems.find(v => v.id === item.id);
-      if (target) {
-        target.downloads = (Number(target.downloads) || 0) + 1;
-        saveVaultToStorage();
-        syncVaultStatsAndTable();
-        searchContent(false);
-      }
-
-      if (item.videoUrl) {
-        const a = document.createElement('a');
-        a.href = item.videoUrl;
-        a.download = `${item.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.mp4`;
-        a.target = '_blank';
-        a.rel = 'noopener';
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-      }
-    }
+    document.getElementById('copyExportBtn').addEventListener('click', () => {
+      const text = document.getElementById('exportBox').textContent;
+      navigator.clipboard?.writeText(text).catch(() => {});
+    });
 
     function escapeHtml(str) {
-      return String(str ?? '')
+      return String(str)
         .replace(/&/g, '&amp;')
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;')
@@ -1788,6 +1313,13 @@
     function escapeAttr(str) {
       return escapeHtml(str).replace(/'/g, '&#39;');
     }
+
+    // Init
+    vaultItems = loadVault();
+    syncVolumeUI();
+    renderStats();
+    renderCatalog();
+    syncRoute();
   </script>
 </body>
 </html>
