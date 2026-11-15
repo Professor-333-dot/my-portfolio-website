@@ -472,7 +472,7 @@
       position: fixed;
       inset: 0;
       z-index: 5000;
-      background: rgba(0, 0, 0, 0.92);
+      background: rgba(0, 0, 0, 0.94);
       backdrop-filter: blur(10px);
       display: none;
       align-items: center;
@@ -500,6 +500,23 @@
       padding: 14px 18px;
       border-bottom: 1px solid var(--border-subtle);
       gap: 12px;
+    }
+
+    .player-header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .back-btn {
+      background: rgba(229, 25, 43, 0.22);
+      border: 1px solid rgba(255, 42, 61, 0.55);
+      color: #fff;
+      padding: 7px 14px;
+      border-radius: 999px;
+      font-size: 0.84rem;
+      font-weight: 700;
+      cursor: pointer;
     }
 
     .player-header h3 {
@@ -724,7 +741,10 @@
   <div class="player-modal" id="playerModal" aria-hidden="true">
     <div class="player-box">
       <div class="player-header">
-        <h3 id="playerTitle">Now Playing — POKO FLIX</h3>
+        <div class="player-header-left">
+          <button type="button" class="back-btn" id="backToHomeBtn">← Back</button>
+          <h3 id="playerTitle">Now Playing — POKO FLIX</h3>
+        </div>
         <button class="close-player-btn" id="closePlayerBtn" title="Close (Esc)">✕</button>
       </div>
       <div class="video-wrap" id="videoWrap">
@@ -822,7 +842,7 @@
     const playerTitle = document.getElementById("playerTitle");
     const playerStatus = document.getElementById("playerStatus");
 
-    const TOTAL_DURATION = 120; // 2:00 preview timeline
+    const TOTAL_DURATION = 120;
     let cinemaPlaying = true;
     let cinemaElapsed = 0;
     let lastFrameTime = performance.now();
@@ -871,7 +891,7 @@
 
       stageCtx.fillStyle = "#ff4d5e";
       stageCtx.font = "700 20px sans-serif";
-      stageCtx.fillText("POKO FLIX CINEMA PREVIEW • READY FOR MP4 STREAM", 640, 398);
+      stageCtx.fillText("POKO FLIX CINEMA PREVIEW • PRESS ← BACK TO RETURN", 640, 398);
 
       stageAnimId = requestAnimationFrame(drawCinemaFrame);
     }
@@ -921,7 +941,12 @@
       }
     }
 
-    function closePlayer() {
+    async function closePlayer() {
+      if (document.fullscreenElement) {
+        try {
+          await document.exitFullscreen();
+        } catch (_) {}
+      }
       pokoVideo.pause();
       pokoVideo.removeAttribute("src");
       pokoVideo.load();
@@ -972,6 +997,7 @@
       renderCards();
     });
 
+    document.getElementById("backToHomeBtn").addEventListener("click", closePlayer);
     document.getElementById("closePlayerBtn").addEventListener("click", closePlayer);
     playerModal.addEventListener("click", (e) => {
       if (e.target === playerModal) closePlayer();
@@ -1051,7 +1077,7 @@
     });
     document.getElementById("searchInput").addEventListener("input", renderCards);
 
-    // Fullscreen & Escape
+    // Fullscreen, Back, & Escape
     function toggleFullscreen() {
       if (!document.fullscreenElement) {
         document.documentElement.requestFullscreen?.();
@@ -1061,9 +1087,15 @@
     }
     document.getElementById("fullscreenBtn").addEventListener("click", toggleFullscreen);
     document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && playerModal.classList.contains("open")) {
-        closePlayer();
-      } else if (e.key.toLowerCase() === "f" && document.activeElement.tagName !== "INPUT") {
+      const isInput = ["INPUT", "TEXTAREA"].includes(document.activeElement.tagName);
+      if (playerModal.classList.contains("open")) {
+        if (e.key === "Escape" || (!isInput && e.key === "Backspace")) {
+          e.preventDefault();
+          closePlayer();
+        }
+        return;
+      }
+      if (!isInput && e.key.toLowerCase() === "f") {
         toggleFullscreen();
       }
     });
