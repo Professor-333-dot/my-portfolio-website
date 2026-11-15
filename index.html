@@ -138,7 +138,6 @@
       }
     }
 
-    /* Stylized Netflix-ribbon 'P' Emblem */
     .p-emblem-wrap {
       position: relative;
       width: 150px;
@@ -421,9 +420,16 @@
       transition: transform 0.18s ease, box-shadow 0.18s ease;
     }
 
-    .btn-primary:hover {
+    .btn-primary:hover:not(:disabled) {
       transform: translateY(-1px);
       box-shadow: 0 14px 28px rgba(255, 30, 66, 0.5);
+    }
+
+    .btn-primary:disabled,
+    .btn-secondary:disabled,
+    .btn-download:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
     }
 
     .btn-secondary {
@@ -438,7 +444,7 @@
       transition: background 0.18s ease, border-color 0.18s ease;
     }
 
-    .btn-secondary:hover {
+    .btn-secondary:hover:not(:disabled) {
       background: #1f263d;
       border-color: rgba(255, 255, 255, 0.3);
     }
@@ -455,9 +461,24 @@
       transition: background 0.18s ease, transform 0.18s ease;
     }
 
-    .btn-download:hover {
+    .btn-download:hover:not(:disabled) {
       background: rgba(0, 212, 255, 0.24);
       transform: translateY(-1px);
+    }
+
+    .btn-danger {
+      background: rgba(255, 30, 66, 0.14);
+      color: #ff758f;
+      border: 1px solid rgba(255, 30, 66, 0.38);
+      border-radius: var(--radius-sm);
+      padding: 7px 11px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .btn-danger:hover {
+      background: rgba(255, 30, 66, 0.26);
     }
 
     .hero-stats-card {
@@ -536,6 +557,12 @@
       border: 1px solid rgba(245, 183, 0, 0.35);
     }
 
+    .vault-badge.unlocked {
+      background: rgba(52, 211, 153, 0.14);
+      color: #34d399;
+      border-color: rgba(52, 211, 153, 0.38);
+    }
+
     /* Form Controls */
     input, select, textarea {
       width: 100%;
@@ -565,8 +592,16 @@
       gap: 12px;
     }
 
+    .key-gate-grid {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      max-width: 540px;
+    }
+
     @media (max-width: 680px) {
-      .form-grid {
+      .form-grid,
+      .key-gate-grid {
         grid-template-columns: 1fr;
       }
     }
@@ -599,7 +634,7 @@
     table {
       width: 100%;
       border-collapse: collapse;
-      min-width: 560px;
+      min-width: 640px;
     }
 
     th, td {
@@ -646,7 +681,7 @@
     /* Search Bar */
     .search-row {
       display: grid;
-      grid-template-columns: 1fr 180px 150px;
+      grid-template-columns: 1fr 180px auto;
       gap: 12px;
     }
 
@@ -707,6 +742,7 @@
     .card img {
       width: 100%;
       height: 270px;
+      aspect-ratio: 2 / 3;
       object-fit: cover;
       border-radius: var(--radius-sm);
       margin-bottom: 10px;
@@ -769,31 +805,18 @@
     .badge-yt { background: #ff2e2e; color: #fff; }
     .badge-google { background: #3b5bdb; color: #fff; }
 
-    .btn-link {
-      display: inline-block;
-      text-align: center;
-      text-decoration: none;
-      background: var(--bg-surface);
-      border: 1px solid var(--border-strong);
-      color: var(--text-primary);
-      padding: 10px 12px;
-      border-radius: var(--radius-sm);
-      font-weight: 700;
-      font-size: 12px;
-    }
-
     .hidden {
       display: none !important;
     }
   </style>
 </head>
-<body>
+<body id="top">
   <!-- =========================================================
-       NETFLIX-STYLE 'P' + POKO FLIX INTRO (AUTOMATIC ENTRY & SOUND)
+       NETFLIX-STYLE 'P' + POKO FLIX INTRO OVERLAY
        ========================================================= -->
   <div id="introOverlay" aria-label="Poko Flix Intro">
     <div class="intro-ambient-glow"></div>
-    <button class="skip-intro-btn" type="button" onclick="finishIntro(true)">Skip Intro</button>
+    <button class="skip-intro-btn" type="button" onclick="finishIntro()">Skip Intro</button>
 
     <div class="intro-stage" id="introStage">
       <div class="p-emblem-wrap">
@@ -810,11 +833,8 @@
               <stop offset="100%" stop-color="#690314" />
             </linearGradient>
           </defs>
-          <!-- Background Ribbon Fold -->
           <path class="p-ribbon-back" d="M26 14 H56 V176 H26 Z" />
-          <!-- Curved Bowl Fold -->
           <path class="p-ribbon-mid" d="M52 14 H86 C114 14 128 32 128 58 C128 84 114 102 86 102 H52 V76 H82 C94 76 100 69 100 58 C100 47 94 40 82 40 H52 Z" />
-          <!-- Front Stem Ribbon -->
           <path class="p-ribbon-front" d="M22 10 L54 18 V178 L22 170 Z" />
         </svg>
       </div>
@@ -874,57 +894,78 @@
       </div>
     </section>
 
-    <!-- ADMIN VAULT (UPLOAD MOVIES + WATCHING & DOWNLOAD ANALYTICS) -->
+    <!-- ADMIN VAULT (LOCKED BY PRIVATE ADMIN KEY) -->
     <section class="panel" id="adminVaultSection">
       <div class="panel-header">
         <div>
           <h2 class="panel-title">Admin Vault</h2>
-          <p class="status-note" style="margin:4px 0 0;">
-            Upload new movies or series and track live watching &amp; download activity.
+          <p class="status-note" id="vaultStateNote" style="margin:4px 0 0;">
+            Locked — only you can open this vault with your Admin Key.
           </p>
         </div>
-        <span class="vault-badge">Admin Control Center</span>
+        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+          <span class="vault-badge" id="vaultStatusBadge">Locked</span>
+          <button class="btn-secondary hidden" id="lockVaultBtn" type="button" onclick="lockAdminVault()">
+            Lock Vault
+          </button>
+        </div>
       </div>
 
-      <form class="form-grid" onsubmit="event.preventDefault(); uploadMovieToVault();">
-        <input id="cTitle" placeholder="Movie / Series Title" required />
-        <select id="cCat">
-          <option value="movie">Movie</option>
-          <option value="series">Series</option>
-        </select>
-        <input id="cGenre" placeholder="Genre (e.g., Action, Sci-Fi, Thriller)" />
-        <input id="cThumb" placeholder="Poster / Thumbnail URL (optional)" />
-        <input id="cVideo" placeholder="Direct MP4 Video URL (or pick local file below)" />
-        <div>
-          <input id="cVideoFile" type="file" accept="video/mp4,video/*" />
-          <div class="file-drop-note">Optional: Select a local video file to preview &amp; publish immediately.</div>
-        </div>
-        <textarea class="span-2" id="cDesc" placeholder="Synopsis / Description"></textarea>
-        <div class="span-2" style="display:flex; gap:10px; flex-wrap:wrap;">
-          <button class="btn-primary" type="submit">Upload to Poko Flix Vault</button>
-          <button class="btn-secondary" type="button" onclick="resetVaultForm()">Clear Form</button>
-        </div>
+      <!-- Private Key Gate -->
+      <form id="vaultKeyForm" class="key-gate-grid" onsubmit="event.preventDefault(); unlockAdminVault();">
+        <input
+          id="adminKeyInput"
+          type="password"
+          placeholder="Enter your Admin Vault Key"
+          autocomplete="off"
+          required
+        />
+        <button class="btn-primary" id="unlockVaultBtn" type="submit">Unlock Vault</button>
       </form>
-      <p id="contentMsg" class="status-note"></p>
+      <p id="vaultKeyMsg" class="status-note" aria-live="polite"></p>
 
-      <!-- WATCHING & DOWNLOADING TELEMETRY BLOCK -->
-      <div class="telemetry-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Title</th>
-              <th>Category</th>
-              <th>Watching Now</th>
-              <th>Total Views</th>
-              <th>Downloads</th>
-            </tr>
-          </thead>
-          <tbody id="adminTelemetryBody">
-            <tr>
-              <td colspan="5" style="color:var(--text-secondary);">Loading video analytics...</td>
-            </tr>
-          </tbody>
-        </table>
+      <!-- Protected Vault Body (hidden until unlocked) -->
+      <div id="vaultProtectedBody" class="hidden">
+        <form class="form-grid" onsubmit="event.preventDefault(); uploadMovieToVault();">
+          <input id="cTitle" placeholder="Movie / Series Title" required />
+          <select id="cCat">
+            <option value="movie">Movie</option>
+            <option value="series">Series</option>
+          </select>
+          <input id="cGenre" placeholder="Genre (e.g., Action, Sci-Fi, Thriller)" />
+          <input id="cThumb" placeholder="Poster / Thumbnail URL (optional)" />
+          <input id="cVideo" placeholder="Direct MP4 Video URL (or pick local file below)" />
+          <div>
+            <input id="cVideoFile" type="file" accept="video/mp4,video/*" />
+            <div class="file-drop-note">Optional: Select a local video file (saved in IndexedDB across reloads).</div>
+          </div>
+          <textarea class="span-2" id="cDesc" placeholder="Synopsis / Description"></textarea>
+          <div class="span-2" style="display:flex; gap:10px; flex-wrap:wrap;">
+            <button class="btn-primary" type="submit">Upload to Poko Flix Vault</button>
+            <button class="btn-secondary" type="button" onclick="resetVaultForm()">Clear Form</button>
+          </div>
+        </form>
+        <p id="contentMsg" class="status-note" aria-live="polite"></p>
+
+        <div class="telemetry-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Category</th>
+                <th>Watching Now</th>
+                <th>Total Views</th>
+                <th>Downloads</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="adminTelemetryBody">
+              <tr>
+                <td colspan="6" style="color:var(--text-secondary);">Loading video analytics...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </section>
 
@@ -937,25 +978,29 @@
       <div class="search-row">
         <input
           id="searchQ"
-          placeholder="Search movies, series, trailers, or topics..."
-          onkeydown="if(event.key==='Enter') searchContent()"
+          type="search"
+          placeholder="Search movies, series, genres, or synopses..."
+          onkeydown="if(event.key==='Enter') searchContent(true)"
         />
         <select id="searchCat">
           <option value="all">All Categories</option>
           <option value="movie">Movies</option>
           <option value="series">Series</option>
         </select>
-        <button class="btn-primary" type="button" onclick="searchContent()">Search</button>
+        <button class="btn-primary" type="button" onclick="searchContent(true)">Search</button>
       </div>
-      <p class="status-note" id="searchStatus">
+      <p class="status-note" id="searchStatus" aria-live="polite">
         Showing Poko Flix Vault library. Add TMDB_API_KEY or YOUTUBE_API_KEY in &lt;script&gt; for expanded external results.
       </p>
 
       <!-- PLAYER AREA -->
       <div id="playerArea" class="hidden">
-        <h3 id="nowPlaying"></h3>
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
+          <h3 id="nowPlaying"></h3>
+          <button class="btn-secondary" type="button" onclick="closePlayer()">Close Player</button>
+        </div>
         <p class="status-note" id="playerStatus"></p>
-        <video id="videoPlayer" controls class="hidden"></video>
+        <video id="videoPlayer" controls preload="metadata" class="hidden"></video>
         <iframe
           id="ytPlayer"
           class="hidden"
@@ -976,7 +1021,29 @@
     const TMDB_API_KEY = '';
     const YOUTUBE_API_KEY = '';
     const INTRO_DURATION_MS = 2750;
-    const STORAGE_KEY = 'poko_flix_vault_items_v1';
+
+    // Admin Vault Key Gate Configuration
+    // Change ADMIN_VAULT_KEY to your private key.
+    // Note: Client-side checks deter casual access; verify on backend too if untrusted users view page source.
+    const ADMIN_VAULT_KEY = 'poko-master-9842';
+    const VAULT_SESSION_KEY = 'poko_vault_unlocked_v1';
+    const MAX_KEY_ATTEMPTS = 3;
+    const LOCKOUT_SECONDS = 20;
+
+    const STORAGE_KEY = 'poko_flix_vault_items_v2';
+    const IDB_NAME = 'poko_flix_media_db';
+    const IDB_STORE = 'videos';
+
+    const FALLBACK_POSTER =
+      'data:image/svg+xml;charset=UTF-8,' +
+      encodeURIComponent(
+        `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="600" viewBox="0 0 400 600">
+          <rect width="400" height="600" fill="#101524"/>
+          <rect x="24" y="24" width="352" height="552" rx="14" fill="none" stroke="#25314d" stroke-width="2"/>
+          <text x="200" y="290" fill="#ff1e42" font-family="sans-serif" font-size="44" font-weight="900" text-anchor="middle">POKO</text>
+          <text x="200" y="334" fill="#9aa3b8" font-family="sans-serif" font-size="14" letter-spacing="4" text-anchor="middle">NO POSTER</text>
+        </svg>`
+      );
 
     const DEFAULT_ITEMS = [
       {
@@ -987,8 +1054,8 @@
         description: 'A deep-space courier intercepts an encrypted signal from a vanished orbital colony.',
         thumbnailUrl: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=700',
         videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
+        hasLocalBlob: false,
         source: 'Poko Flix',
-        actionType: 'mp4',
         watchingNow: 14,
         totalViews: 428,
         downloads: 119
@@ -1001,35 +1068,248 @@
         description: 'An underground archivist uncovers a web linking neon-lit metro lines to a cold case.',
         thumbnailUrl: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=700',
         videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+        hasLocalBlob: false,
         source: 'Poko Flix',
-        actionType: 'mp4',
         watchingNow: 9,
         totalViews: 312,
         downloads: 84
       }
     ];
 
-    let vaultItems = loadVaultFromStorage();
+    let vaultItems = [];
     let renderedItems = [];
+    let currentlyTrackedPlayingId = null;
     let introDone = false;
     let introTimer = null;
     let audioCtx = null;
+    let failedKeyAttempts = 0;
+    let lockoutUntil = 0;
+    let lockoutInterval = null;
+    let searchDebounceTimer = null;
 
     // =========================================================
-    // AUTOMATIC NETFLIX-STYLE 'P' INTRO + AUTO SOUND
+    // BOOTSTRAP
     // =========================================================
-    window.addEventListener('DOMContentLoaded', () => {
+    window.addEventListener('DOMContentLoaded', async () => {
+      restoreVaultLockState();
+      restoreSearchFromUrl();
+      vaultItems = await loadVaultFromStorage();
       syncVaultStatsAndTable();
-      renderCards(vaultItems);
+      searchContent(false);
+      wirePlayerTelemetry();
+      wireSearchListeners();
       fetchBackendContent();
       launchIntro();
     });
 
+    window.addEventListener('beforeunload', () => {
+      releaseActiveViewer();
+    });
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !introDone) {
+        finishIntro();
+      }
+    });
+
+    // =========================================================
+    // ADMIN VAULT KEY GATE
+    // =========================================================
+    function setVaultUnlocked(unlocked) {
+      const keyForm = document.getElementById('vaultKeyForm');
+      const protectedBody = document.getElementById('vaultProtectedBody');
+      const badge = document.getElementById('vaultStatusBadge');
+      const note = document.getElementById('vaultStateNote');
+      const lockBtn = document.getElementById('lockVaultBtn');
+
+      keyForm.classList.toggle('hidden', unlocked);
+      protectedBody.classList.toggle('hidden', !unlocked);
+      lockBtn.classList.toggle('hidden', !unlocked);
+
+      badge.textContent = unlocked ? 'Unlocked' : 'Locked';
+      badge.classList.toggle('unlocked', unlocked);
+      note.textContent = unlocked
+        ? 'Authenticated — upload new titles, manage entries, and monitor live activity.'
+        : 'Locked — only you can open this vault with your Admin Key.';
+    }
+
+    function unlockAdminVault() {
+      const input = document.getElementById('adminKeyInput');
+      const btn = document.getElementById('unlockVaultBtn');
+      const msg = document.getElementById('vaultKeyMsg');
+      const now = Date.now();
+
+      if (now < lockoutUntil) {
+        const remaining = Math.ceil((lockoutUntil - now) / 1000);
+        msg.textContent = `Too many attempts. Try again in ${remaining}s.`;
+        return;
+      }
+
+      const entered = input.value.trim();
+      if (entered !== ADMIN_VAULT_KEY) {
+        failedKeyAttempts += 1;
+        input.value = '';
+        input.focus();
+
+        if (failedKeyAttempts >= MAX_KEY_ATTEMPTS) {
+          lockoutUntil = Date.now() + LOCKOUT_SECONDS * 1000;
+          failedKeyAttempts = 0;
+          btn.disabled = true;
+          input.disabled = true;
+          startLockoutCountdown();
+          return;
+        }
+
+        const left = MAX_KEY_ATTEMPTS - failedKeyAttempts;
+        msg.textContent = `Invalid Admin Vault key. ${left} attempt${left === 1 ? '' : 's'} remaining.`;
+        return;
+      }
+
+      failedKeyAttempts = 0;
+      lockoutUntil = 0;
+      clearInterval(lockoutInterval);
+      btn.disabled = false;
+      input.disabled = false;
+      input.value = '';
+      msg.textContent = '';
+
+      sessionStorage.setItem(VAULT_SESSION_KEY, '1');
+      setVaultUnlocked(true);
+    }
+
+    function startLockoutCountdown() {
+      const input = document.getElementById('adminKeyInput');
+      const btn = document.getElementById('unlockVaultBtn');
+      const msg = document.getElementById('vaultKeyMsg');
+
+      clearInterval(lockoutInterval);
+      const tick = () => {
+        const rem = Math.ceil((lockoutUntil - Date.now()) / 1000);
+        if (rem <= 0) {
+          clearInterval(lockoutInterval);
+          btn.disabled = false;
+          input.disabled = false;
+          msg.textContent = 'You may try entering your Admin Vault Key again.';
+          input.focus();
+        } else {
+          msg.textContent = `Vault temporarily locked due to failed attempts. Retry in ${rem}s.`;
+        }
+      };
+      tick();
+      lockoutInterval = setInterval(tick, 500);
+    }
+
+    function lockAdminVault() {
+      sessionStorage.removeItem(VAULT_SESSION_KEY);
+      document.getElementById('vaultKeyMsg').textContent = 'Vault locked.';
+      setVaultUnlocked(false);
+    }
+
+    function restoreVaultLockState() {
+      const isUnlocked = sessionStorage.getItem(VAULT_SESSION_KEY) === '1';
+      setVaultUnlocked(isUnlocked);
+    }
+
+    // =========================================================
+    // INDEXEDDB + LOCALSTORAGE PERSISTENCE
+    // =========================================================
+    function openMediaDb() {
+      return new Promise((resolve, reject) => {
+        if (!('indexedDB' in window)) {
+          reject(new Error('IndexedDB unavailable'));
+          return;
+        }
+        const req = indexedDB.open(IDB_NAME, 1);
+        req.onupgradeneeded = () => {
+          const db = req.result;
+          if (!db.objectStoreNames.contains(IDB_STORE)) {
+            db.createObjectStore(IDB_STORE, { keyPath: 'id' });
+          }
+        };
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    async function saveBlobToDb(id, blob) {
+      try {
+        const db = await openMediaDb();
+        await new Promise((resolve, reject) => {
+          const tx = db.transaction(IDB_STORE, 'readwrite');
+          tx.objectStore(IDB_STORE).put({ id, blob });
+          tx.oncomplete = resolve;
+          tx.onerror = () => reject(tx.error);
+        });
+      } catch {
+        // Ignore if IndexedDB blocked
+      }
+    }
+
+    async function deleteBlobFromDb(id) {
+      try {
+        const db = await openMediaDb();
+        await new Promise((resolve, reject) => {
+          const tx = db.transaction(IDB_STORE, 'readwrite');
+          tx.objectStore(IDB_STORE).delete(id);
+          tx.oncomplete = resolve;
+          tx.onerror = () => reject(tx.error);
+        });
+      } catch {
+        // Ignore
+      }
+    }
+
+    async function getBlobFromDb(id) {
+      try {
+        const db = await openMediaDb();
+        return await new Promise((resolve, reject) => {
+          const tx = db.transaction(IDB_STORE, 'readonly');
+          const req = tx.objectStore(IDB_STORE).get(id);
+          req.onsuccess = () => resolve(req.result ? req.result.blob : null);
+          req.onerror = () => reject(req.error);
+        });
+      } catch {
+        return null;
+      }
+    }
+
+    async function loadVaultFromStorage() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        const base = raw ? JSON.parse(raw) : structuredClone(DEFAULT_ITEMS);
+        const items = Array.isArray(base) && base.length ? base : structuredClone(DEFAULT_ITEMS);
+
+        for (const item of items) {
+          if (item.hasLocalBlob) {
+            const blob = await getBlobFromDb(item.id);
+            item.videoUrl = blob ? URL.createObjectURL(blob) : '';
+          }
+        }
+        return items;
+      } catch {
+        return structuredClone(DEFAULT_ITEMS);
+      }
+    }
+
+    function saveVaultToStorage() {
+      try {
+        const serializable = vaultItems.map(item => ({
+          ...item,
+          videoUrl: item.hasLocalBlob ? '' : item.videoUrl
+        }));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(serializable));
+      } catch {
+        // Ignore storage quota errors
+      }
+    }
+
+    // =========================================================
+    // NETFLIX-STYLE 'P' INTRO + AUTO SOUND
+    // =========================================================
     function launchIntro() {
       introDone = false;
       const overlay = document.getElementById('introOverlay');
       const stage = document.getElementById('introStage');
-      const shell = document.getElementById('appShell');
 
       overlay.classList.remove('fade-out');
       stage.style.animation = 'none';
@@ -1039,13 +1319,23 @@
       playIntroSound();
 
       clearTimeout(introTimer);
-      introTimer = setTimeout(() => finishIntro(false), INTRO_DURATION_MS);
+      introTimer = setTimeout(() => finishIntro(), INTRO_DURATION_MS);
     }
 
     function replayIntro() {
       const shell = document.getElementById('appShell');
       shell.classList.remove('visible');
       launchIntro();
+    }
+
+    function finishIntro() {
+      if (introDone) return;
+      introDone = true;
+      clearTimeout(introTimer);
+      const overlay = document.getElementById('introOverlay');
+      const shell = document.getElementById('appShell');
+      overlay.classList.add('fade-out');
+      shell.classList.add('visible');
     }
 
     function playIntroSound() {
@@ -1056,16 +1346,11 @@
         audioCtx = new AudioContextClass();
       }
 
-      const tryResumeAndSchedule = () => {
-        if (audioCtx.state === 'suspended') {
-          audioCtx.resume().catch(() => {});
-        }
-        scheduleCinemaTaDum(audioCtx);
-      };
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume().catch(() => {});
+      }
+      scheduleCinemaTaDum(audioCtx);
 
-      tryResumeAndSchedule();
-
-      // Fallback unlock on first user interaction if browser suspended autoplay
       const unlock = () => {
         if (audioCtx && audioCtx.state === 'suspended') {
           audioCtx.resume().catch(() => {});
@@ -1116,67 +1401,101 @@
 
       // First hit ("Ta")
       triggerImpact(now, 145, 52, 0.36, 0.42);
-      // Second deeper sub hit ("Dum")
-      triggerImpact(now + 0.32, 112, 34, 1.65, 0.65);
+      // Second hit ("Dum")
+      triggerImpact(now + 0.42, 110, 34, 1.35, 0.55);
+    }
 
-      // Shimmering fifth chord swell
-      [146.83, 220.0, 293.66, 440.0].forEach((freq, idx) => {
-        const pad = ctx.createOscillator();
-        const padGain = ctx.createGain();
-        const padFilter = ctx.createBiquadFilter();
-
-        pad.type = idx % 2 === 0 ? 'triangle' : 'sine';
-        pad.frequency.setValueAtTime(freq, now + 0.28);
-
-        padFilter.type = 'lowpass';
-        padFilter.frequency.setValueAtTime(1100, now + 0.28);
-        padFilter.frequency.exponentialRampToValueAtTime(280, now + 2.1);
-
-        padGain.gain.setValueAtTime(0.0001, now + 0.28);
-        padGain.gain.linearRampToValueAtTime(0.055, now + 0.48);
-        padGain.gain.exponentialRampToValueAtTime(0.0001, now + 2.1);
-
-        pad.connect(padFilter);
-        padFilter.connect(padGain);
-        padGain.connect(ctx.destination);
-
-        pad.start(now + 0.28);
-        pad.stop(now + 2.15);
+    // =========================================================
+    // VAULT UPLOAD, DELETION & TELEMETRY
+    // =========================================================
+    function resetVaultForm() {
+      ['cTitle', 'cGenre', 'cThumb', 'cVideo', 'cVideoFile', 'cDesc'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
       });
+      document.getElementById('cCat').value = 'movie';
+      document.getElementById('contentMsg').textContent = '';
     }
 
-    function finishIntro(skipped = false) {
-      if (introDone) return;
-      introDone = true;
-      clearTimeout(introTimer);
+    async function uploadMovieToVault() {
+      if (sessionStorage.getItem(VAULT_SESSION_KEY) !== '1') {
+        document.getElementById('contentMsg').textContent = 'Unlock Admin Vault first.';
+        return;
+      }
 
-      const overlay = document.getElementById('introOverlay');
-      const shell = document.getElementById('appShell');
-      overlay.classList.add('fade-out');
+      const title = document.getElementById('cTitle').value.trim();
+      const category = document.getElementById('cCat').value;
+      const genre = document.getElementById('cGenre').value.trim() || 'Cinema';
+      const thumbnailUrl = document.getElementById('cThumb').value.trim() || FALLBACK_POSTER;
+      const fileInput = document.getElementById('cVideoFile');
+      const localFile = fileInput.files && fileInput.files[0];
+      const videoUrl = localFile
+        ? URL.createObjectURL(localFile)
+        : document.getElementById('cVideo').value.trim();
+      const description =
+        document.getElementById('cDesc').value.trim() || 'Added directly via Poko Flix Admin Vault.';
 
-      setTimeout(() => {
-        shell.classList.add('visible');
-      }, skipped ? 0 : 220);
-    }
+      const msgEl = document.getElementById('contentMsg');
+      if (!title) {
+        msgEl.textContent = 'Please enter a title before uploading.';
+        return;
+      }
 
-    // =========================================================
-    // STORAGE & TELEMETRY HELPERS
-    // =========================================================
-    function loadVaultFromStorage() {
+      const id = 'poko-' + Date.now();
+      if (localFile) {
+        await saveBlobToDb(id, localFile);
+      }
+
+      const newItem = {
+        id,
+        title,
+        category,
+        genre,
+        description,
+        thumbnailUrl,
+        videoUrl,
+        hasLocalBlob: Boolean(localFile),
+        source: 'Poko Flix',
+        watchingNow: 0,
+        totalViews: 0,
+        downloads: 0
+      };
+
+      vaultItems.unshift(newItem);
+      saveVaultToStorage();
+      syncVaultStatsAndTable();
+      searchContent(false);
+      resetVaultForm();
+
+      msgEl.textContent = `Published "${title}" to Poko Flix Vault.`;
+
+      // Non-blocking backend sync
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 2500);
       try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (raw) {
-          const parsed = JSON.parse(raw);
-          if (Array.isArray(parsed) && parsed.length) return parsed;
-        }
-      } catch (e) {}
-      return DEFAULT_ITEMS.map(item => ({ ...item }));
+        await fetch(`${API}/content`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title, category, genre, description, thumbnailUrl, videoUrl: localFile ? '' : videoUrl }),
+          signal: controller.signal
+        });
+      } catch {
+        // Local vault remains active offline
+      } finally {
+        clearTimeout(timeout);
+      }
     }
 
-    function saveVaultToStorage() {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(vaultItems));
-      } catch (e) {}
+    async function deleteVaultItem(id) {
+      if (sessionStorage.getItem(VAULT_SESSION_KEY) !== '1') return;
+      if (currentlyTrackedPlayingId === id) {
+        closePlayer();
+      }
+      vaultItems = vaultItems.filter(item => item.id !== id);
+      await deleteBlobFromDb(id);
+      saveVaultToStorage();
+      syncVaultStatsAndTable();
+      searchContent(false);
     }
 
     function syncVaultStatsAndTable() {
@@ -1184,429 +1503,290 @@
       const totalViews = vaultItems.reduce((sum, i) => sum + (Number(i.totalViews) || 0), 0);
       const totalDownloads = vaultItems.reduce((sum, i) => sum + (Number(i.downloads) || 0), 0);
 
-      document.getElementById('statWatchingNow').innerText = watchingNow.toLocaleString();
-      document.getElementById('statTotalViews').innerText = totalViews.toLocaleString();
-      document.getElementById('statTotalDownloads').innerText = totalDownloads.toLocaleString();
-      document.getElementById('statVaultCount').innerText = vaultItems.length.toLocaleString();
+      document.getElementById('statWatchingNow').textContent = watchingNow;
+      document.getElementById('statTotalViews').textContent = totalViews;
+      document.getElementById('statTotalDownloads').textContent = totalDownloads;
+      document.getElementById('statVaultCount').textContent = vaultItems.length;
 
       const tbody = document.getElementById('adminTelemetryBody');
       if (!vaultItems.length) {
-        tbody.innerHTML = `<tr><td colspan="5" style="color:var(--text-secondary);">No videos uploaded to the Admin Vault yet.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" style="color:var(--text-secondary);">No titles in vault yet.</td></tr>`;
         return;
       }
 
-      tbody.innerHTML = vaultItems.map(item => `
-        <tr>
-          <td><strong>${escapeHtml(item.title)}</strong></td>
-          <td style="text-transform:capitalize;">${escapeHtml(item.category || 'movie')}</td>
-          <td><span class="pill-metric pill-watch">${Number(item.watchingNow || 0)} watching</span></td>
-          <td>${Number(item.totalViews || 0).toLocaleString()}</td>
-          <td><span class="pill-metric pill-download">${Number(item.downloads || 0).toLocaleString()} downloaded</span></td>
-        </tr>
-      `).join('');
+      tbody.innerHTML = vaultItems
+        .map(
+          item => `
+            <tr>
+              <td><strong>${escapeHtml(item.title)}</strong></td>
+              <td style="text-transform:capitalize;">${escapeHtml(item.category)}</td>
+              <td><span class="pill-metric pill-watch">● ${Number(item.watchingNow) || 0} live</span></td>
+              <td>${Number(item.totalViews) || 0}</td>
+              <td><span class="pill-metric pill-download">↓ ${Number(item.downloads) || 0}</span></td>
+              <td>
+                <button class="btn-danger" type="button" onclick="deleteVaultItem('${escapeAttr(item.id)}')">
+                  Remove
+                </button>
+              </td>
+            </tr>
+          `
+        )
+        .join('');
     }
 
-    function recordWatchEvent(item) {
-      if (!item || !item.id) return;
-      const target = vaultItems.find(v => v.id === item.id);
-      if (target) {
-        target.watchingNow = (Number(target.watchingNow) || 0) + 1;
-        target.totalViews = (Number(target.totalViews) || 0) + 1;
+    async function fetchBackendContent() {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 2500);
+      try {
+        const res = await fetch(`${API}/content`, { signal: controller.signal });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (Array.isArray(data) && data.length) {
+          const existingIds = new Set(vaultItems.map(i => i.id));
+          const merged = data
+            .filter(d => d && d.title && !existingIds.has(d.id))
+            .map(d => ({
+              id: d.id || 'api-' + Math.random().toString(36).slice(2, 8),
+              title: d.title,
+              category: d.category || 'movie',
+              genre: d.genre || 'Cinema',
+              description: d.description || '',
+              thumbnailUrl: d.thumbnailUrl || FALLBACK_POSTER,
+              videoUrl: d.videoUrl || '',
+              hasLocalBlob: false,
+              source: 'Poko Flix',
+              watchingNow: Number(d.watchingNow) || 0,
+              totalViews: Number(d.totalViews) || 0,
+              downloads: Number(d.downloads) || 0
+            }));
+          if (merged.length) {
+            vaultItems = [...merged, ...vaultItems];
+            saveVaultToStorage();
+            syncVaultStatsAndTable();
+            searchContent(false);
+          }
+        }
+      } catch {
+        // Keep local catalog active
+      } finally {
+        clearTimeout(timeout);
+      }
+    }
+
+    // =========================================================
+    // SEARCH, RENDERING & PLAYBACK
+    // =========================================================
+    function wireSearchListeners() {
+      const qInput = document.getElementById('searchQ');
+      const catSelect = document.getElementById('searchCat');
+
+      qInput.addEventListener('input', () => {
+        clearTimeout(searchDebounceTimer);
+        searchDebounceTimer = setTimeout(() => searchContent(true), 120);
+      });
+
+      catSelect.addEventListener('change', () => searchContent(true));
+    }
+
+    function restoreSearchFromUrl() {
+      const params = new URLSearchParams(location.search);
+      const q = params.get('q') || '';
+      const cat = params.get('cat') || 'all';
+      document.getElementById('searchQ').value = q;
+      document.getElementById('searchCat').value = ['all', 'movie', 'series'].includes(cat) ? cat : 'all';
+    }
+
+    function syncSearchToUrl(q, cat) {
+      const params = new URLSearchParams();
+      if (q) params.set('q', q);
+      if (cat && cat !== 'all') params.set('cat', cat);
+      const qs = params.toString();
+      history.replaceState(null, '', qs ? `?${qs}` : location.pathname);
+    }
+
+    function searchContent(updateUrl = true) {
+      const q = document.getElementById('searchQ').value.trim().toLowerCase();
+      const cat = document.getElementById('searchCat').value;
+
+      if (updateUrl) {
+        syncSearchToUrl(q, cat);
+      }
+
+      const matches = vaultItems.filter(item => {
+        const catOk = cat === 'all' || item.category === cat;
+        const textOk =
+          !q ||
+          item.title.toLowerCase().includes(q) ||
+          (item.genre && item.genre.toLowerCase().includes(q)) ||
+          (item.description && item.description.toLowerCase().includes(q));
+        return catOk && textOk;
+      });
+
+      document.getElementById('searchStatus').textContent =
+        `Showing ${matches.length} title${matches.length === 1 ? '' : 's'} in Poko Flix Vault.`;
+      renderCards(matches);
+    }
+
+    function renderCards(items) {
+      renderedItems = items;
+      const grid = document.getElementById('contentGrid');
+      if (!items.length) {
+        grid.innerHTML = `<p class="status-note">No matching titles found. Try another keyword or upload one in Admin Vault.</p>`;
+        return;
+      }
+
+      grid.innerHTML = items
+        .map((item, idx) => {
+          const badgeClass =
+            item.source === 'YouTube'
+              ? 'badge-yt'
+              : item.source === 'TMDB'
+              ? 'badge-tmdb'
+              : 'badge-poko';
+          return `
+            <article class="card">
+              <div>
+                <span class="badge ${badgeClass}">${escapeHtml(item.source || 'Poko Flix')}</span>
+                <img
+                  src="${escapeAttr(item.thumbnailUrl || FALLBACK_POSTER)}"
+                  alt="${escapeAttr(item.title)}"
+                  loading="lazy"
+                  decoding="async"
+                  onerror="this.onerror=null;this.src='${FALLBACK_POSTER}';"
+                />
+                <h4>${escapeHtml(item.title)}</h4>
+                <p>${escapeHtml(item.category)} • ${escapeHtml(item.genre || 'Cinema')}</p>
+                <p class="desc">${escapeHtml(item.description || '')}</p>
+                <div class="card-meta-stats">
+                  <span class="pill-metric pill-watch">● ${Number(item.watchingNow) || 0} watching</span>
+                  <span class="pill-metric pill-download">↓ ${Number(item.downloads) || 0}</span>
+                </div>
+              </div>
+              <div class="card-actions">
+                <button class="btn-primary" type="button" onclick="playItem(${idx})">Play</button>
+                <button class="btn-download" type="button" onclick="downloadItem(${idx})">Download</button>
+              </div>
+            </article>
+          `;
+        })
+        .join('');
+    }
+
+    function releaseActiveViewer() {
+      if (!currentlyTrackedPlayingId) return;
+      const item = vaultItems.find(i => i.id === currentlyTrackedPlayingId);
+      currentlyTrackedPlayingId = null;
+      if (!item) return;
+      item.watchingNow = Math.max(0, (Number(item.watchingNow) || 1) - 1);
+      saveVaultToStorage();
+      syncVaultStatsAndTable();
+      searchContent(false);
+    }
+
+    function wirePlayerTelemetry() {
+      const video = document.getElementById('videoPlayer');
+
+      video.addEventListener('play', () => {
+        const activeId = video.dataset.itemId;
+        if (!activeId || currentlyTrackedPlayingId === activeId) return;
+        releaseActiveViewer();
+        const item = vaultItems.find(i => i.id === activeId);
+        if (!item) return;
+        currentlyTrackedPlayingId = activeId;
+        item.watchingNow = (Number(item.watchingNow) || 0) + 1;
+        item.totalViews = (Number(item.totalViews) || 0) + 1;
         saveVaultToStorage();
         syncVaultStatsAndTable();
-        renderCards(renderedItems);
-      }
-      fetch(`${API}/content/${encodeURIComponent(item.id)}/watch`, { method: 'POST' }).catch(() => {});
+        searchContent(false);
+      });
+
+      video.addEventListener('pause', releaseActiveViewer);
+      video.addEventListener('ended', releaseActiveViewer);
     }
 
-    function recordDownloadEvent(item) {
-      if (!item || !item.id) return;
+    function closePlayer() {
+      releaseActiveViewer();
+      const video = document.getElementById('videoPlayer');
+      const iframe = document.getElementById('ytPlayer');
+      video.pause();
+      video.removeAttribute('src');
+      delete video.dataset.itemId;
+      video.classList.add('hidden');
+      iframe.src = '';
+      iframe.classList.add('hidden');
+      document.getElementById('playerArea').classList.add('hidden');
+    }
+
+    function playItem(idx) {
+      const item = renderedItems[idx];
+      if (!item) return;
+
+      releaseActiveViewer();
+
+      const playerArea = document.getElementById('playerArea');
+      const nowPlaying = document.getElementById('nowPlaying');
+      const playerStatus = document.getElementById('playerStatus');
+      const video = document.getElementById('videoPlayer');
+      const iframe = document.getElementById('ytPlayer');
+
+      playerArea.classList.remove('hidden');
+      nowPlaying.textContent = `${item.title} (${item.category})`;
+
+      iframe.classList.add('hidden');
+      iframe.src = '';
+
+      if (item.videoUrl) {
+        video.dataset.itemId = item.id;
+        video.classList.remove('hidden');
+        video.src = item.videoUrl;
+        playerStatus.textContent = `Streaming from ${item.source || 'Poko Flix'}.`;
+        video.play().catch(() => {
+          playerStatus.textContent = 'Ready — click Play on the video controls to start.';
+        });
+      } else {
+        delete video.dataset.itemId;
+        video.classList.add('hidden');
+        video.removeAttribute('src');
+        playerStatus.textContent = 'No direct video stream attached to this entry yet.';
+      }
+
+      playerArea.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function downloadItem(idx) {
+      const item = renderedItems[idx];
+      if (!item) return;
+
       const target = vaultItems.find(v => v.id === item.id);
       if (target) {
         target.downloads = (Number(target.downloads) || 0) + 1;
         saveVaultToStorage();
         syncVaultStatsAndTable();
-        renderCards(renderedItems);
+        searchContent(false);
       }
-      fetch(`${API}/content/${encodeURIComponent(item.id)}/download`, { method: 'POST' }).catch(() => {});
-    }
-
-    // =========================================================
-    // ADMIN VAULT: UPLOAD MOVIE / SERIES
-    // =========================================================
-    async function uploadMovieToVault() {
-      const msgEl = document.getElementById('contentMsg');
-      const title = document.getElementById('cTitle').value.trim();
-      const category = document.getElementById('cCat').value;
-      const genre = document.getElementById('cGenre').value.trim() || 'Featured';
-      const thumbnailUrl = document.getElementById('cThumb').value.trim()
-        || 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=700';
-      const fileInput = document.getElementById('cVideoFile');
-      const localFile = fileInput.files && fileInput.files[0];
-      const videoUrl = localFile
-        ? URL.createObjectURL(localFile)
-        : document.getElementById('cVideo').value.trim();
-      const description = document.getElementById('cDesc').value.trim();
-
-      if (!title) {
-        msgEl.innerText = 'Please enter a movie or series title.';
-        return;
-      }
-
-      const newEntry = {
-        id: 'poko-' + Date.now(),
-        title,
-        category,
-        genre,
-        thumbnailUrl,
-        videoUrl,
-        description,
-        source: 'Poko Flix',
-        actionType: 'mp4',
-        watchingNow: 1,
-        totalViews: 1,
-        downloads: 0
-      };
-
-      vaultItems.unshift(newEntry);
-      saveVaultToStorage();
-      syncVaultStatsAndTable();
-      renderCards(vaultItems);
-      msgEl.innerText = `Published "${title}" to Poko Flix Admin Vault.`;
-
-      // Optional backend sync
-      try {
-        await fetch(API + '/content', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ title, category, genre, thumbnailUrl, videoUrl, description })
-        });
-      } catch (err) {
-        // Offline backend fallback already saved locally
-      }
-    }
-
-    function resetVaultForm() {
-      document.getElementById('cTitle').value = '';
-      document.getElementById('cGenre').value = '';
-      document.getElementById('cThumb').value = '';
-      document.getElementById('cVideo').value = '';
-      document.getElementById('cVideoFile').value = '';
-      document.getElementById('cDesc').value = '';
-      document.getElementById('contentMsg').innerText = '';
-    }
-
-    async function fetchBackendContent() {
-      try {
-        const res = await fetch(API + '/content');
-        const data = await res.json();
-        if (Array.isArray(data.items) && data.items.length) {
-          const mapped = data.items.map(item => ({
-            ...item,
-            id: item.id || ('poko-' + Math.random().toString(36).slice(2, 9)),
-            source: 'Poko Flix',
-            actionType: 'mp4',
-            watchingNow: item.watchingNow ?? 0,
-            totalViews: item.totalViews ?? 0,
-            downloads: item.downloads ?? 0
-          }));
-          vaultItems = mapped;
-          saveVaultToStorage();
-          syncVaultStatsAndTable();
-          renderCards(vaultItems);
-        }
-      } catch (err) {
-        // Keep local vault items active when backend is offline
-      }
-    }
-
-    // =========================================================
-    // SEARCH (POKO FLIX + TMDB + YOUTUBE + GOOGLE)
-    // =========================================================
-    async function searchContent() {
-      const rawQ = document.getElementById('searchQ').value.trim();
-      const q = encodeURIComponent(rawQ);
-      const category = document.getElementById('searchCat').value;
-      const statusEl = document.getElementById('searchStatus');
-
-      const localMatches = vaultItems.filter(item => {
-        const catOk = category === 'all' || item.category === category;
-        const textOk = !rawQ
-          || (item.title || '').toLowerCase().includes(rawQ.toLowerCase())
-          || (item.genre || '').toLowerCase().includes(rawQ.toLowerCase())
-          || (item.description || '').toLowerCase().includes(rawQ.toLowerCase());
-        return catOk && textOk;
-      });
-
-      if (!rawQ) {
-        statusEl.innerText = 'Showing Poko Flix Vault items.';
-        renderCards(localMatches);
-        return;
-      }
-
-      const combined = [...localMatches];
-      const activeSources = localMatches.length ? ['Poko Flix'] : [];
-
-      if (TMDB_API_KEY) {
-        try {
-          const tmdbRes = await fetch(
-            `https://api.themoviedb.org/3/search/multi?api_key=${encodeURIComponent(TMDB_API_KEY)}&query=${q}&include_adult=false&page=1`
-          );
-          const tmdbData = await tmdbRes.json();
-          const tmdbResults = (tmdbData.results || [])
-            .filter(r => r.media_type === 'movie' || r.media_type === 'tv')
-            .filter(r => category === 'all' || (category === 'movie' && r.media_type === 'movie') || (category === 'series' && r.media_type === 'tv'))
-            .slice(0, 6);
-
-          tmdbResults.forEach(r => {
-            const title = r.title || r.name || 'Untitled';
-            const year = (r.release_date || r.first_air_date || '').slice(0, 4);
-            combined.push({
-              source: 'TMDB',
-              title,
-              category: r.media_type === 'tv' ? 'series' : 'movie',
-              genre: year ? `Released ${year}` : 'TMDB Catalog',
-              description: r.overview || 'No description available.',
-              thumbnailUrl: r.poster_path ? `https://image.tmdb.org/t/p/w500${r.poster_path}` : '',
-              tmdbId: r.id,
-              mediaType: r.media_type,
-              actionType: 'tmdb-trailer'
-            });
-          });
-          activeSources.push('TMDB');
-        } catch (err) {}
-      }
-
-      if (YOUTUBE_API_KEY) {
-        try {
-          const ytRes = await fetch(
-            `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=4&q=${q}&key=${encodeURIComponent(YOUTUBE_API_KEY)}`
-          );
-          const ytData = await ytRes.json();
-          (ytData.items || []).forEach(v => {
-            combined.push({
-              source: 'YouTube',
-              title: v.snippet.title,
-              category: 'video',
-              genre: v.snippet.channelTitle,
-              description: v.snippet.description || '',
-              thumbnailUrl: v.snippet.thumbnails?.high?.url || v.snippet.thumbnails?.medium?.url || '',
-              videoId: v.id.videoId,
-              actionType: 'youtube-embed'
-            });
-          });
-          activeSources.push('YouTube');
-        } catch (err) {}
-      }
-
-      combined.push({
-        source: 'YouTube',
-        title: `YouTube Results: ${rawQ}`,
-        category: 'video',
-        genre: 'External Search',
-        description: 'Open full YouTube search results in a new tab.',
-        thumbnailUrl: 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=600',
-        externalUrl: `https://www.youtube.com/results?search_query=${q}`,
-        actionType: 'external'
-      });
-
-      combined.push({
-        source: 'Google',
-        title: `Google Results: ${rawQ}`,
-        category: 'web',
-        genre: 'Web Search',
-        description: 'Open Google search results in a new tab.',
-        thumbnailUrl: 'https://images.unsplash.com/photo-1573804633927-bfcbcd909acd?w=600',
-        externalUrl: `https://www.google.com/search?q=${q}`,
-        actionType: 'external'
-      });
-
-      const prefix = activeSources.length ? activeSources.join(', ') + ' + ' : '';
-      statusEl.innerText = `Searched "${rawQ}" across: ${prefix}YouTube/Google links.`;
-      renderCards(combined);
-    }
-
-    // =========================================================
-    // RENDER CARDS & PLAYBACK / DOWNLOAD ACTIONS
-    // =========================================================
-    function renderCards(items) {
-      renderedItems = items;
-      const grid = document.getElementById('contentGrid');
-      if (!items.length) {
-        grid.innerHTML = '<p class="status-note">No items found.</p>';
-        return;
-      }
-
-      grid.innerHTML = items.map((item, idx) => {
-        const safeTitle = escapeHtml(item.title || 'Untitled');
-        const safeGenre = escapeHtml(item.genre || '');
-        const safeCat = escapeHtml(item.category || '');
-        const safeDesc = escapeHtml(item.description || '');
-        const safeThumb = escapeHtml(item.thumbnailUrl || '');
-        const safeExtUrl = escapeHtml(item.externalUrl || '');
-        const source = escapeHtml(item.source || 'Poko Flix');
-
-        let badgeClass = 'badge-poko';
-        if (item.source === 'TMDB') badgeClass = 'badge-tmdb';
-        if (item.source === 'YouTube') badgeClass = 'badge-yt';
-        if (item.source === 'Google') badgeClass = 'badge-google';
-
-        const statsStrip = item.source === 'Poko Flix'
-          ? `<div class="card-meta-stats">
-               <span class="pill-metric pill-watch">${Number(item.watchingNow || 0)} watching</span>
-               <span class="pill-metric pill-download">${Number(item.downloads || 0)} downloads</span>
-             </div>`
-          : '';
-
-        let buttonsHtml = '';
-        if (item.actionType === 'mp4') {
-          buttonsHtml = `
-            <button class="btn-primary" type="button" onclick="handleCardPlay(${idx})">Play</button>
-            <button class="btn-download" type="button" onclick="handleCardDownload(${idx})">Download</button>
-          `;
-        } else if (item.actionType === 'tmdb-trailer') {
-          buttonsHtml = `<button class="btn-primary" type="button" onclick="handleCardPlay(${idx})">Play Trailer</button>`;
-        } else if (item.actionType === 'youtube-embed') {
-          buttonsHtml = `<button class="btn-primary" type="button" onclick="handleCardPlay(${idx})">Play Video</button>`;
-        } else {
-          buttonsHtml = `<a class="btn-link" href="${safeExtUrl}" target="_blank" rel="noopener noreferrer">Open ${source}</a>`;
-        }
-
-        return `
-          <article class="card">
-            <div>
-              <span class="badge ${badgeClass}">${source}</span>
-              ${safeThumb ? `<img src="${safeThumb}" alt="${safeTitle}" />` : ''}
-              <h4>${safeTitle}</h4>
-              <p>${safeCat}${safeGenre ? ' • ' + safeGenre : ''}</p>
-              ${safeDesc ? `<p class="desc">${safeDesc}</p>` : ''}
-              ${statsStrip}
-            </div>
-            <div class="card-actions">
-              ${buttonsHtml}
-            </div>
-          </article>
-        `;
-      }).join('');
-    }
-
-    function handleCardPlay(idx) {
-      const item = renderedItems[idx];
-      if (!item) return;
-      recordWatchEvent(item);
-
-      if (item.actionType === 'mp4') {
-        playMp4(item.title, item.videoUrl);
-      } else if (item.actionType === 'tmdb-trailer') {
-        playTmdbTrailer(item.title, item.tmdbId, item.mediaType);
-      } else if (item.actionType === 'youtube-embed') {
-        playYouTube(item.title, item.videoId);
-      }
-    }
-
-    function handleCardDownload(idx) {
-      const item = renderedItems[idx];
-      if (!item) return;
-      recordDownloadEvent(item);
 
       if (item.videoUrl) {
         const a = document.createElement('a');
         a.href = item.videoUrl;
-        a.download = `${(item.title || 'poko-flix').replace(/[^a-z0-9]/gi, '_').toLowerCase()}.mp4`;
+        a.download = `${item.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.mp4`;
         a.target = '_blank';
-        a.rel = 'noopener noreferrer';
+        a.rel = 'noopener';
         document.body.appendChild(a);
         a.click();
         a.remove();
       }
     }
 
-    function resetPlayer(title, statusText) {
-      const area = document.getElementById('playerArea');
-      const video = document.getElementById('videoPlayer');
-      const yt = document.getElementById('ytPlayer');
-
-      area.classList.remove('hidden');
-      document.getElementById('nowPlaying').innerText = title;
-      document.getElementById('playerStatus').innerText = statusText || '';
-
-      video.pause();
-      video.removeAttribute('src');
-      video.load();
-      video.classList.add('hidden');
-
-      yt.src = '';
-      yt.classList.add('hidden');
-      area.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
-
-    function playMp4(title, url) {
-      if (!url) {
-        resetPlayer(title, 'No direct MP4 URL was provided for this item.');
-        return;
-      }
-      resetPlayer('Now Playing: ' + title, 'Streaming direct MP4 from Poko Flix');
-      const video = document.getElementById('videoPlayer');
-      video.classList.remove('hidden');
-      video.src = url;
-      video.play().catch(() => {});
-    }
-
-    function playYouTube(title, videoId) {
-      resetPlayer('Now Playing: ' + title, 'Embedded YouTube playback');
-      const yt = document.getElementById('ytPlayer');
-      yt.classList.remove('hidden');
-      yt.src = `https://www.youtube.com/embed/${encodeURIComponent(videoId)}?autoplay=1`;
-    }
-
-    async function playTmdbTrailer(title, tmdbId, mediaType) {
-      resetPlayer('Loading Trailer: ' + title, 'Looking up trailer...');
-
-      if (TMDB_API_KEY && tmdbId) {
-        try {
-          const res = await fetch(
-            `https://api.themoviedb.org/3/${encodeURIComponent(mediaType)}/${encodeURIComponent(tmdbId)}/videos?api_key=${encodeURIComponent(TMDB_API_KEY)}`
-          );
-          const data = await res.json();
-          const videos = data.results || [];
-          const trailer =
-            videos.find(v => v.site === 'YouTube' && v.type === 'Trailer') ||
-            videos.find(v => v.site === 'YouTube');
-
-          if (trailer && trailer.key) {
-            playYouTube(title + ' (Trailer)', trailer.key);
-            return;
-          }
-        } catch (err) {}
-      }
-
-      if (YOUTUBE_API_KEY) {
-        try {
-          const q = encodeURIComponent(title + ' official trailer');
-          const res = await fetch(
-            `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=1&q=${q}&key=${encodeURIComponent(YOUTUBE_API_KEY)}`
-          );
-          const data = await res.json();
-          const first = (data.items || [])[0];
-          if (first && first.id && first.id.videoId) {
-            playYouTube(title + ' (Trailer)', first.id.videoId);
-            return;
-          }
-        } catch (err) {}
-      }
-
-      const ytSearchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(title + ' trailer')}`;
-      document.getElementById('playerStatus').innerHTML =
-        `No embedded trailer available automatically. <a href="${ytSearchUrl}" target="_blank" rel="noopener noreferrer" style="color:#ff758f;">Search "${escapeHtml(title)} trailer" on YouTube</a>.`;
-    }
-
-    function escapeHtml(str = '') {
-      return String(str)
+    function escapeHtml(str) {
+      return String(str ?? '')
         .replace(/&/g, '&amp;')
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
+        .replace(/"/g, '&quot;');
+    }
+
+    function escapeAttr(str) {
+      return escapeHtml(str).replace(/'/g, '&#39;');
     }
   </script>
 </body>
