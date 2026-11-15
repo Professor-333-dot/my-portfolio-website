@@ -7,17 +7,23 @@
   <meta name="theme-color" content="#ff1e42" />
   <style>
     :root {
-      --bg: #06070b;
-      --surface: #10131c;
-      --surface-2: #171c29;
+      --bg: #05060a;
+      --surface: #0f131d;
+      --surface-2: #171d2c;
+      --surface-3: #1f273b;
       --border: rgba(255, 255, 255, 0.09);
-      --text: #f5f7fb;
-      --muted: #9aa3b8;
+      --border-glow: rgba(255, 30, 66, 0.5);
+      --text: #f6f8fc;
+      --muted: #98a2b8;
       --accent: #ff1e42;
-      --accent-hover: #ff3b5c;
+      --accent-2: #ff5e3a;
+      --accent-hover: #ff3556;
       --ok: #22c55e;
       --warn: #f59e0b;
-      --radius: 14px;
+      --err: #f87171;
+      --radius: 16px;
+      --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+      --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
     }
 
     * {
@@ -27,240 +33,530 @@
     }
 
     html, body {
-      background: var(--bg);
+      background:
+        radial-gradient(circle at 15% 0%, rgba(255, 30, 66, 0.12), transparent 38%),
+        radial-gradient(circle at 85% 15%, rgba(99, 102, 241, 0.08), transparent 42%),
+        var(--bg);
       color: var(--text);
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       line-height: 1.5;
       min-height: 100vh;
+      overflow-x: hidden;
     }
 
-    /* Netflix-style 'P' Intro Overlay */
+    /* =========================================================
+       1. EXTRAORDINARY POKO FLIX 'P' INTRO OVERLAY
+       ========================================================= */
     #introOverlay {
       position: fixed;
       inset: 0;
       z-index: 9999;
-      background: radial-gradient(circle at center, #18060b 0%, #05060a 72%);
+      background:
+        radial-gradient(circle at 50% 45%, rgba(255, 30, 66, 0.24) 0%, rgba(16, 6, 14, 0.92) 36%, #030407 78%);
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      transition: opacity 0.55s ease, visibility 0.55s ease;
+      overflow: hidden;
+      transition: opacity 0.65s var(--ease-out), visibility 0.65s var(--ease-out), transform 0.65s var(--ease-out);
     }
 
     #introOverlay.hidden {
       opacity: 0;
       visibility: hidden;
       pointer-events: none;
+      transform: scale(1.04);
     }
 
-    .p-emblem {
-      font-size: clamp(5.5rem, 18vw, 10rem);
-      font-weight: 900;
-      color: var(--accent);
-      letter-spacing: -0.05em;
-      text-shadow: 0 0 42px rgba(255, 30, 66, 0.65);
-      animation: pPulse 1.5s ease-in-out infinite alternate;
+    .intro-beam {
+      position: absolute;
+      width: 160vmax;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, rgba(255, 30, 66, 0.85), rgba(255, 180, 195, 1), rgba(255, 30, 66, 0.85), transparent);
+      box-shadow: 0 0 28px rgba(255, 30, 66, 0.9);
+      opacity: 0;
+      animation: beamSweep 1.8s var(--ease-out) forwards;
+    }
+
+    .intro-beam.beam-2 {
+      transform: rotate(28deg);
+      animation-delay: 0.15s;
+    }
+
+    .intro-beam.beam-3 {
+      transform: rotate(-28deg);
+      animation-delay: 0.22s;
+    }
+
+    @keyframes beamSweep {
+      0% { opacity: 0; transform: scaleX(0.1); }
+      35% { opacity: 1; }
+      75% { opacity: 0.85; transform: scaleX(1); }
+      100% { opacity: 0; transform: scaleX(1.2); }
+    }
+
+    .intro-ring {
+      position: absolute;
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 30, 66, 0.8);
+      box-shadow: 0 0 40px rgba(255, 30, 66, 0.6), inset 0 0 24px rgba(255, 30, 66, 0.4);
+      opacity: 0;
+      animation: shockwave 2.1s var(--ease-out) forwards;
+      animation-delay: 0.35s;
+    }
+
+    .intro-ring.ring-2 {
+      animation-delay: 0.58s;
+      border-color: rgba(255, 110, 135, 0.55);
+    }
+
+    @keyframes shockwave {
+      0% {
+        width: 110px;
+        height: 110px;
+        opacity: 0.95;
+        transform: scale(0.7);
+      }
+      100% {
+        width: 95vmax;
+        height: 95vmax;
+        opacity: 0;
+        transform: scale(1.15);
+      }
+    }
+
+    .intro-stage {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      perspective: 1100px;
+    }
+
+    .p-monolith {
+      position: relative;
+      display: grid;
+      place-items: center;
+      width: clamp(9.5rem, 26vw, 15.5rem);
+      height: clamp(10.5rem, 28vw, 17rem);
+      border-radius: 28px;
+      background:
+        linear-gradient(145deg, rgba(255, 58, 92, 0.22), rgba(14, 16, 26, 0.92) 45%, rgba(255, 30, 66, 0.14));
+      border: 1px solid rgba(255, 95, 122, 0.45);
+      box-shadow:
+        0 25px 80px rgba(0, 0, 0, 0.85),
+        0 0 70px rgba(255, 30, 66, 0.48),
+        inset 0 1px 0 rgba(255, 255, 255, 0.28);
+      transform-style: preserve-3d;
+      animation: monolithSlam 1.35s var(--ease-spring) forwards;
+    }
+
+    .p-monolith::after {
+      content: "";
+      position: absolute;
+      inset: -2px;
+      border-radius: 30px;
+      background: linear-gradient(120deg, transparent 20%, rgba(255, 255, 255, 0.55) 50%, transparent 80%);
+      background-size: 200% 100%;
+      mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      mask-composite: exclude;
+      -webkit-mask-composite: xor;
+      padding: 1.5px;
+      animation: borderShimmer 2.2s linear infinite;
+    }
+
+    @keyframes monolithSlam {
+      0% {
+        opacity: 0;
+        transform: translateZ(260px) scale(2.1) rotateX(24deg);
+        filter: blur(14px) brightness(2.4);
+      }
+      55% {
+        opacity: 1;
+        transform: translateZ(-10px) scale(0.96) rotateX(-4deg);
+        filter: blur(0) brightness(1.35);
+      }
+      100% {
+        opacity: 1;
+        transform: translateZ(0) scale(1) rotateX(0deg);
+        filter: blur(0) brightness(1);
+      }
+    }
+
+    @keyframes borderShimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    .p-giant {
+      font-size: clamp(6.4rem, 19vw, 11.5rem);
+      font-weight: 950;
+      line-height: 0.9;
+      letter-spacing: -0.06em;
+      background: linear-gradient(180deg, #ffffff 0%, #ffd6de 32%, #ff1e42 68%, #990820 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      filter: drop-shadow(0 10px 26px rgba(255, 30, 66, 0.7));
+      animation: pLetterPower 2.2s ease-in-out infinite alternate;
       user-select: none;
     }
 
-    .intro-sub {
-      margin-top: 0.4rem;
-      font-size: 0.95rem;
-      letter-spacing: 0.22em;
+    @keyframes pLetterPower {
+      0% {
+        transform: scale(0.97) translateY(2px);
+        filter: drop-shadow(0 6px 18px rgba(255, 30, 66, 0.55));
+      }
+      100% {
+        transform: scale(1.05) translateY(-3px);
+        filter: drop-shadow(0 16px 42px rgba(255, 55, 90, 0.95));
+      }
+    }
+
+    .poko-wordmark {
+      margin-top: 1.35rem;
+      font-size: clamp(1.55rem, 4.2vw, 2.55rem);
+      font-weight: 900;
+      letter-spacing: 0.34em;
+      text-indent: 0.34em;
+      text-transform: uppercase;
+      background: linear-gradient(90deg, #ff758f, #ffffff 45%, #ffffff 55%, #ff1e42);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      opacity: 0;
+      transform: translateY(18px) scale(0.94);
+      animation: wordmarkRise 1.15s var(--ease-out) forwards;
+      animation-delay: 0.38s;
+      text-shadow: 0 0 32px rgba(255, 30, 66, 0.45);
+    }
+
+    @keyframes wordmarkRise {
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .intro-tagline {
+      margin-top: 0.55rem;
+      font-size: 0.82rem;
+      letter-spacing: 0.24em;
       text-transform: uppercase;
       color: var(--muted);
+      opacity: 0;
+      animation: fadeUp 0.9s var(--ease-out) forwards;
+      animation-delay: 0.65s;
     }
 
-    #skipIntroBtn {
-      margin-top: 1.6rem;
-      background: rgba(255, 255, 255, 0.08);
-      color: var(--text);
-      border: 1px solid var(--border);
-      padding: 0.5rem 1.1rem;
-      border-radius: 999px;
-      cursor: pointer;
-      font-size: 0.85rem;
+    .intro-actions {
+      position: relative;
+      z-index: 2;
+      margin-top: 1.65rem;
+      display: flex;
+      gap: 0.7rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      opacity: 0;
+      animation: fadeUp 0.8s var(--ease-out) forwards;
+      animation-delay: 0.75s;
     }
 
-    @keyframes pPulse {
-      from { transform: scale(0.95); text-shadow: 0 0 20px rgba(255, 30, 66, 0.4); }
-      to { transform: scale(1.06); text-shadow: 0 0 55px rgba(255, 30, 66, 0.85); }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
-    /* Top Navigation */
+    /* =========================================================
+       2. TOP HEADER WITH TOP-RIGHT ADMIN BUTTON
+       ========================================================= */
     header {
       position: sticky;
       top: 0;
-      z-index: 50;
-      background: rgba(6, 7, 11, 0.92);
+      z-index: 60;
+      background: rgba(5, 6, 10, 0.86);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
       border-bottom: 1px solid var(--border);
       padding: 0.85rem 1.25rem;
     }
 
     .nav-inner {
-      max-width: 1280px;
+      max-width: 1320px;
       margin: 0 auto;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 1rem;
-      flex-wrap: wrap;
     }
 
     .brand {
       display: flex;
       align-items: center;
-      gap: 0.65rem;
+      gap: 0.7rem;
       text-decoration: none;
       color: var(--text);
-      font-weight: 800;
+      font-weight: 900;
       font-size: 1.35rem;
       letter-spacing: -0.02em;
+      transition: transform 0.2s var(--ease-spring);
+    }
+
+    .brand:hover {
+      transform: translateX(2px);
     }
 
     .brand-badge {
-      width: 34px;
-      height: 34px;
-      border-radius: 8px;
-      background: var(--accent);
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
       display: grid;
       place-items: center;
-      font-weight: 900;
-      font-size: 1.15rem;
+      font-weight: 950;
+      font-size: 1.25rem;
       color: #fff;
+      box-shadow: 0 6px 20px rgba(255, 30, 66, 0.45);
+      transition: transform 0.3s var(--ease-spring), box-shadow 0.3s ease;
     }
 
-    .nav-actions {
+    .brand:hover .brand-badge {
+      transform: rotate(-6deg) scale(1.08);
+      box-shadow: 0 8px 26px rgba(255, 30, 66, 0.7);
+    }
+
+    .nav-right {
       display: flex;
       align-items: center;
-      gap: 0.6rem;
-      flex-wrap: wrap;
+      gap: 0.65rem;
+      margin-left: auto;
     }
 
+    /* =========================================================
+       3. ANIMATED BUTTONS & INTERACTIVE MICRO-STATES
+       ========================================================= */
     .btn {
+      position: relative;
+      overflow: hidden;
       background: var(--surface-2);
       color: var(--text);
       border: 1px solid var(--border);
-      padding: 0.55rem 0.95rem;
-      border-radius: 10px;
+      padding: 0.58rem 1rem;
+      border-radius: 11px;
       font-size: 0.9rem;
-      font-weight: 600;
+      font-weight: 650;
       cursor: pointer;
       text-decoration: none;
       display: inline-flex;
       align-items: center;
-      gap: 0.4rem;
-      transition: background 0.15s ease, border-color 0.15s ease;
+      justify-content: center;
+      gap: 0.48rem;
+      transition:
+        transform 0.2s var(--ease-spring),
+        background 0.2s ease,
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+    }
+
+    .btn::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(120deg, transparent 30%, rgba(255, 255, 255, 0.16) 50%, transparent 70%);
+      transform: translateX(-120%);
+      transition: transform 0.5s var(--ease-out);
+      pointer-events: none;
+    }
+
+    .btn:hover::after {
+      transform: translateX(120%);
     }
 
     .btn:hover {
-      background: #21283a;
-      border-color: rgba(255, 255, 255, 0.2);
+      background: var(--surface-3);
+      border-color: rgba(255, 255, 255, 0.22);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+    }
+
+    .btn:active {
+      transform: scale(0.96);
     }
 
     .btn-primary {
-      background: var(--accent);
-      border-color: var(--accent);
+      background: linear-gradient(135deg, var(--accent), #d91233);
+      border-color: rgba(255, 110, 135, 0.45);
       color: #fff;
+      box-shadow: 0 6px 20px rgba(255, 30, 66, 0.32);
     }
 
     .btn-primary:hover {
-      background: var(--accent-hover);
-      border-color: var(--accent-hover);
+      background: linear-gradient(135deg, var(--accent-hover), #e51739);
+      border-color: rgba(255, 150, 170, 0.65);
+      box-shadow: 0 10px 26px rgba(255, 30, 66, 0.52);
     }
 
     .btn.active {
-      background: var(--accent);
-      border-color: var(--accent);
+      background: linear-gradient(135deg, var(--accent), #c9102e);
+      border-color: rgba(255, 130, 150, 0.6);
       color: #fff;
     }
 
-    /* Main Shell */
+    /* Animated Equalizer Bars for Speaker & Active Card */
+    .eq-bars {
+      display: inline-flex;
+      align-items: flex-end;
+      gap: 2px;
+      height: 13px;
+      width: 14px;
+    }
+
+    .eq-bars span {
+      display: block;
+      width: 3px;
+      height: 4px;
+      border-radius: 2px;
+      background: currentColor;
+      transition: height 0.2s ease;
+    }
+
+    .eq-bars.playing span:nth-child(1) { animation: eqBounce 0.55s ease-in-out infinite alternate; }
+    .eq-bars.playing span:nth-child(2) { animation: eqBounce 0.42s ease-in-out infinite alternate 0.15s; }
+    .eq-bars.playing span:nth-child(3) { animation: eqBounce 0.65s ease-in-out infinite alternate 0.28s; }
+
+    @keyframes eqBounce {
+      0% { height: 3px; }
+      100% { height: 13px; }
+    }
+
+    /* =========================================================
+       4. MAIN SHELL & PAGE TRANSITIONS
+       ========================================================= */
     main {
-      max-width: 1280px;
+      max-width: 1320px;
       margin: 0 auto;
-      padding: 1.25rem;
+      padding: 1.35rem 1.25rem 3rem;
     }
 
     .page-view {
       display: none;
+      opacity: 0;
+      transform: translateY(14px);
     }
 
     .page-view.active {
       display: block;
+      animation: pageReveal 0.45s var(--ease-out) forwards;
     }
 
-    /* Hero & Telemetry */
+    @keyframes pageReveal {
+      from {
+        opacity: 0;
+        transform: translateY(14px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Hero */
     .hero {
-      background: linear-gradient(135deg, rgba(255, 30, 66, 0.18), rgba(16, 19, 28, 0.95) 55%);
+      background:
+        radial-gradient(circle at 8% 20%, rgba(255, 30, 66, 0.24), transparent 52%),
+        linear-gradient(135deg, rgba(20, 25, 39, 0.96), rgba(11, 14, 22, 0.96));
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 1.35rem;
-      margin-bottom: 1.25rem;
+      padding: 1.45rem;
+      margin-bottom: 1.35rem;
       display: grid;
       grid-template-columns: 1.4fr 1fr;
       gap: 1.25rem;
       align-items: center;
+      box-shadow: 0 18px 45px rgba(0, 0, 0, 0.4);
     }
 
     @media (max-width: 820px) {
-      .hero {
-        grid-template-columns: 1fr;
-      }
+      .hero { grid-template-columns: 1fr; }
     }
 
     .hero h1 {
-      font-size: clamp(1.5rem, 3vw, 2.2rem);
-      line-height: 1.2;
-      margin-bottom: 0.45rem;
+      font-size: clamp(1.55rem, 3.2vw, 2.3rem);
+      line-height: 1.18;
+      margin-bottom: 0.5rem;
+      letter-spacing: -0.02em;
     }
 
     .hero p {
       color: var(--muted);
-      font-size: 0.95rem;
+      font-size: 0.96rem;
       max-width: 58ch;
     }
 
     .stats-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 0.7rem;
+      gap: 0.75rem;
     }
 
     .stat-card {
-      background: rgba(6, 7, 11, 0.65);
+      background: rgba(5, 6, 10, 0.72);
       border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 0.8rem;
+      border-radius: 13px;
+      padding: 0.9rem;
+      transition: transform 0.25s var(--ease-spring), border-color 0.25s ease;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-3px);
+      border-color: var(--border-glow);
     }
 
     .stat-label {
-      font-size: 0.75rem;
+      font-size: 0.74rem;
       color: var(--muted);
       text-transform: uppercase;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.06em;
     }
 
     .stat-value {
-      font-size: 1.35rem;
-      font-weight: 800;
+      font-size: 1.45rem;
+      font-weight: 850;
       margin-top: 0.2rem;
+      font-variant-numeric: tabular-nums;
+      transition: transform 0.25s var(--ease-spring), color 0.25s ease;
     }
 
-    /* Video Player Stage (NO transform or filter on ancestors) */
+    .stat-value.bump {
+      transform: scale(1.16);
+      color: #ff6b85;
+    }
+
+    /* =========================================================
+       5. VIDEO PLAYER STAGE (NO transform/filter on ancestors)
+       ========================================================= */
     #playerSection {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 1rem;
-      margin-bottom: 1.35rem;
-      transition: max-width 0.25s ease;
+      padding: 1.1rem;
+      margin-bottom: 1.45rem;
+      box-shadow: 0 22px 55px rgba(0, 0, 0, 0.55);
+      transition: border-color 0.3s ease, box-shadow 0.3s ease, padding 0.3s var(--ease-out);
+    }
+
+    #playerSection.is-playing {
+      border-color: rgba(255, 30, 66, 0.45);
+      box-shadow: 0 24px 65px rgba(255, 30, 66, 0.14), 0 20px 50px rgba(0, 0, 0, 0.65);
     }
 
     #playerSection.large-screen {
-      max-width: 100%;
-      padding: 1.25rem;
-      border-color: rgba(255, 30, 66, 0.45);
+      padding: 1.35rem;
+      border-color: rgba(255, 30, 66, 0.6);
     }
 
     .player-header {
@@ -269,17 +565,68 @@
       align-items: center;
       gap: 0.75rem;
       flex-wrap: wrap;
-      margin-bottom: 0.8rem;
+      margin-bottom: 0.85rem;
     }
 
     .player-title {
-      font-size: 1.1rem;
-      font-weight: 700;
+      font-size: 1.15rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+    }
+
+    .live-pill {
+      display: none;
+      align-items: center;
+      gap: 0.38rem;
+      font-size: 0.72rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 0.2rem 0.58rem;
+      border-radius: 999px;
+      background: rgba(255, 30, 66, 0.18);
+      border: 1px solid rgba(255, 30, 66, 0.5);
+      color: #ff758f;
+    }
+
+    #playerSection.is-playing .live-pill {
+      display: inline-flex;
+      animation: pulseGlow 1.6s ease-in-out infinite;
+    }
+
+    @keyframes pulseGlow {
+      0%, 100% { box-shadow: 0 0 0 rgba(255, 30, 66, 0); }
+      50% { box-shadow: 0 0 14px rgba(255, 30, 66, 0.55); }
     }
 
     .player-meta {
       font-size: 0.85rem;
       color: var(--muted);
+    }
+
+    .video-frame {
+      position: relative;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #000;
+      border: 1px solid rgba(255, 255, 255, 0.07);
+    }
+
+    #pokoVideo {
+      width: 100%;
+      height: 54vh;
+      min-height: 270px;
+      max-height: 76vh;
+      background: #000;
+      display: block;
+      transition: height 0.35s var(--ease-out), max-height 0.35s var(--ease-out);
+    }
+
+    #playerSection.large-screen #pokoVideo {
+      height: 80vh;
+      max-height: 86vh;
     }
 
     .player-controls-bar {
@@ -288,8 +635,8 @@
       justify-content: space-between;
       gap: 0.75rem;
       flex-wrap: wrap;
-      margin-top: 0.85rem;
-      padding-top: 0.75rem;
+      margin-top: 0.9rem;
+      padding-top: 0.8rem;
       border-top: 1px solid var(--border);
     }
 
@@ -300,24 +647,8 @@
       flex-wrap: wrap;
     }
 
-    #pokoVideo {
-      width: 100%;
-      height: 52vh;
-      min-height: 260px;
-      max-height: 75vh;
-      background: #000;
-      border-radius: 10px;
-      display: block;
-      transition: height 0.25s ease, max-height 0.25s ease;
-    }
-
-    #playerSection.large-screen #pokoVideo {
-      height: 82vh;
-      max-height: 88vh;
-    }
-
     .volume-slider {
-      width: 110px;
+      width: 120px;
       accent-color: var(--accent);
       cursor: pointer;
     }
@@ -325,24 +656,41 @@
     .vol-readout {
       font-variant-numeric: tabular-nums;
       font-size: 0.88rem;
-      font-weight: 700;
-      min-width: 3.2rem;
+      font-weight: 800;
+      min-width: 3.3rem;
+      text-align: center;
+      padding: 0.25rem 0.5rem;
+      border-radius: 8px;
+      background: var(--bg);
+      border: 1px solid var(--border);
     }
 
     .player-status {
-      margin-top: 0.55rem;
-      font-size: 0.85rem;
+      margin-top: 0.65rem;
+      font-size: 0.86rem;
       color: var(--muted);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      flex-wrap: wrap;
     }
 
-    /* Filter & Search Toolbar */
+    .status-badge {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    /* =========================================================
+       6. CATALOG TOOLBAR & STAGGERED CARDS
+       ========================================================= */
     .toolbar {
       display: flex;
       justify-content: space-between;
       align-items: center;
       gap: 0.75rem;
       flex-wrap: wrap;
-      margin-bottom: 1rem;
+      margin-bottom: 1.15rem;
     }
 
     .filter-pills {
@@ -355,17 +703,23 @@
       background: var(--surface);
       color: var(--text);
       border: 1px solid var(--border);
-      padding: 0.6rem 0.9rem;
-      border-radius: 10px;
-      min-width: 240px;
+      padding: 0.62rem 0.95rem;
+      border-radius: 11px;
+      min-width: 250px;
       font-size: 0.92rem;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
     }
 
-    /* Catalog Grid */
+    .search-input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(255, 30, 66, 0.2);
+    }
+
     .catalog-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-      gap: 1rem;
+      grid-template-columns: repeat(auto-fill, minmax(265px, 1fr));
+      gap: 1.1rem;
     }
 
     .card {
@@ -375,11 +729,36 @@
       overflow: hidden;
       display: flex;
       flex-direction: column;
+      opacity: 0;
+      transform: translateY(18px) scale(0.98);
+      animation: cardEnter 0.5s var(--ease-out) forwards;
+      transition:
+        transform 0.28s var(--ease-spring),
+        border-color 0.28s ease,
+        box-shadow 0.28s ease;
+    }
+
+    @keyframes cardEnter {
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .card:hover {
+      transform: translateY(-6px) scale(1.01);
+      border-color: rgba(255, 30, 66, 0.45);
+      box-shadow: 0 20px 44px rgba(0, 0, 0, 0.55), 0 0 28px rgba(255, 30, 66, 0.12);
+    }
+
+    .card.is-active-card {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(255, 30, 66, 0.5), 0 18px 40px rgba(255, 30, 66, 0.18);
     }
 
     .card-thumb {
       aspect-ratio: 16 / 9;
-      background: #141824;
+      background: linear-gradient(135deg, #1a1f32, #0b0e17);
       position: relative;
       overflow: hidden;
     }
@@ -389,36 +768,43 @@
       height: 100%;
       object-fit: cover;
       display: block;
+      transition: transform 0.55s var(--ease-out);
+    }
+
+    .card:hover .card-thumb img {
+      transform: scale(1.07);
     }
 
     .card-badge {
       position: absolute;
-      top: 0.6rem;
-      left: 0.6rem;
-      background: rgba(6, 7, 11, 0.82);
+      top: 0.65rem;
+      left: 0.65rem;
+      background: rgba(5, 6, 10, 0.84);
+      backdrop-filter: blur(6px);
       border: 1px solid var(--border);
-      padding: 0.2rem 0.55rem;
+      padding: 0.22rem 0.6rem;
       border-radius: 999px;
       font-size: 0.72rem;
       text-transform: uppercase;
-      font-weight: 700;
+      font-weight: 800;
+      letter-spacing: 0.04em;
     }
 
     .card-body {
-      padding: 0.9rem;
+      padding: 1rem;
       display: flex;
       flex-direction: column;
-      gap: 0.5rem;
+      gap: 0.52rem;
       flex: 1;
     }
 
     .card-title {
-      font-size: 1.02rem;
-      font-weight: 700;
+      font-size: 1.05rem;
+      font-weight: 800;
     }
 
     .card-desc {
-      font-size: 0.85rem;
+      font-size: 0.86rem;
       color: var(--muted);
       flex: 1;
     }
@@ -431,28 +817,45 @@
     .card-actions {
       display: flex;
       gap: 0.5rem;
-      margin-top: 0.35rem;
+      margin-top: 0.4rem;
     }
 
     .card-actions .btn {
       flex: 1;
-      justify-content: center;
-      padding: 0.5rem 0.7rem;
+      padding: 0.52rem 0.72rem;
       font-size: 0.84rem;
     }
 
-    /* Separate Admin Page Styles */
+    /* =========================================================
+       7. SEPARATE ADMIN VAULT PAGE
+       ========================================================= */
+    .admin-hero {
+      background:
+        radial-gradient(circle at 90% 10%, rgba(255, 30, 66, 0.22), transparent 50%),
+        linear-gradient(135deg, rgba(19, 24, 38, 0.96), rgba(10, 13, 21, 0.96));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.35rem;
+      margin-bottom: 1.25rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
     .admin-panel {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 1.25rem;
+      padding: 1.35rem;
       margin-bottom: 1.25rem;
+      animation: pageReveal 0.4s var(--ease-out) both;
     }
 
     .admin-panel h2 {
       font-size: 1.25rem;
-      margin-bottom: 0.4rem;
+      margin-bottom: 0.35rem;
     }
 
     .admin-panel p.sub {
@@ -461,22 +864,33 @@
       margin-bottom: 1rem;
     }
 
+    @keyframes shakeX {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-10px); }
+      40% { transform: translateX(10px); }
+      60% { transform: translateX(-7px); }
+      80% { transform: translateX(7px); }
+    }
+
+    .shake {
+      animation: shakeX 0.42s ease;
+      border-color: rgba(248, 113, 113, 0.7) !important;
+    }
+
     .form-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 0.85rem;
+      gap: 0.9rem;
     }
 
     @media (max-width: 720px) {
-      .form-grid {
-        grid-template-columns: 1fr;
-      }
+      .form-grid { grid-template-columns: 1fr; }
     }
 
     .field {
       display: flex;
       flex-direction: column;
-      gap: 0.35rem;
+      gap: 0.38rem;
     }
 
     .field.full {
@@ -486,7 +900,7 @@
     .field label {
       font-size: 0.82rem;
       color: var(--muted);
-      font-weight: 600;
+      font-weight: 700;
     }
 
     .field input,
@@ -495,10 +909,40 @@
       background: var(--bg);
       color: var(--text);
       border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 0.65rem 0.8rem;
+      border-radius: 11px;
+      padding: 0.68rem 0.85rem;
       font-size: 0.92rem;
       font-family: inherit;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .field input:focus,
+    .field select:focus,
+    .field textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(255, 30, 66, 0.2);
+    }
+
+    .upload-progress-wrap {
+      display: none;
+      margin-top: 0.75rem;
+      height: 6px;
+      border-radius: 999px;
+      background: var(--bg);
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .upload-progress-wrap.active {
+      display: block;
+    }
+
+    .upload-progress-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      transition: width 0.35s var(--ease-out);
     }
 
     .table-wrap {
@@ -514,68 +958,132 @@
 
     th, td {
       text-align: left;
-      padding: 0.65rem 0.7rem;
+      padding: 0.7rem 0.75rem;
       border-bottom: 1px solid var(--border);
+      white-space: nowrap;
     }
 
     th {
       color: var(--muted);
-      font-size: 0.78rem;
+      font-size: 0.76rem;
       text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    tbody tr {
+      transition: background 0.2s ease;
+    }
+
+    tbody tr:hover {
+      background: rgba(255, 255, 255, 0.03);
     }
 
     .status-msg {
       margin-top: 0.75rem;
       font-size: 0.88rem;
       color: var(--ok);
+      font-weight: 600;
     }
 
     .status-msg.error {
-      color: #f87171;
+      color: var(--err);
     }
 
     pre.export-box {
       background: var(--bg);
       border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 0.85rem;
+      border-radius: 11px;
+      padding: 0.9rem;
       font-size: 0.8rem;
       overflow-x: auto;
       color: #cbd5e1;
-      margin-top: 0.75rem;
+      margin-top: 0.8rem;
       max-height: 260px;
+    }
+
+    /* Toast Notification */
+    .toast {
+      position: fixed;
+      bottom: 1.25rem;
+      right: 1.25rem;
+      z-index: 200;
+      background: rgba(17, 22, 35, 0.96);
+      color: var(--text);
+      border: 1px solid rgba(255, 30, 66, 0.5);
+      box-shadow: 0 14px 36px rgba(0, 0, 0, 0.6);
+      padding: 0.75rem 1.05rem;
+      border-radius: 12px;
+      font-size: 0.88rem;
+      font-weight: 650;
+      transform: translateY(24px) scale(0.95);
+      opacity: 0;
+      pointer-events: none;
+      transition: transform 0.3s var(--ease-spring), opacity 0.25s ease;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
     }
   </style>
 </head>
 <body>
-  <!-- Netflix-style 'P' Intro -->
+  <!-- EXTRAORDINARY POKO FLIX INTRO -->
   <div id="introOverlay" role="dialog" aria-label="Poko Flix Intro">
-    <div class="p-emblem">P</div>
-    <div class="intro-sub">Poko Flix Originals</div>
-    <button id="skipIntroBtn" type="button">Skip Intro</button>
+    <div class="intro-beam"></div>
+    <div class="intro-beam beam-2"></div>
+    <div class="intro-beam beam-3"></div>
+    <div class="intro-ring"></div>
+    <div class="intro-ring ring-2"></div>
+
+    <div class="intro-stage">
+      <div class="p-monolith">
+        <div class="p-giant">P</div>
+      </div>
+      <div class="poko-wordmark">POKO FLIX</div>
+      <div class="intro-tagline">Cinema Vault &bull; Direct Stream</div>
+    </div>
+
+    <div class="intro-actions">
+      <button id="enableAudioIntroBtn" type="button" class="btn">🔊 Play Intro Sound</button>
+      <button id="skipIntroBtn" type="button" class="btn btn-primary">Enter Poko Flix</button>
+    </div>
   </div>
 
-  <!-- Top Header -->
+  <!-- TOP NAVIGATION (Admin button locked to Top Right Corner) -->
   <header>
     <div class="nav-inner">
       <a href="#home" class="brand" id="brandLink">
         <span class="brand-badge">P</span>
         <span>Poko Flix</span>
       </a>
-      <div class="nav-actions">
+
+      <div class="nav-right">
         <button type="button" class="btn active" id="navStoreBtn">Storefront</button>
-        <button type="button" class="btn" id="navAdminBtn">Admin Page</button>
+        <button type="button" class="btn btn-primary" id="navAdminBtn" title="Open Separate Admin Vault">
+          🔐 Admin Vault
+        </button>
       </div>
     </div>
   </header>
 
   <main>
-    <!-- STOREFRONT PAGE -->
+    <!-- =========================================================
+         STOREFRONT VIEW
+         ========================================================= -->
     <section id="storefrontView" class="page-view active">
       <div class="hero">
         <div>
-          <h1>Unlimited Direct Streaming, Zero Login Friction.</h1>
-          <p>Browse movies and series, expand the cinema stage, boost speaker volume on tap, and stream direct HTTPS MP4 titles.</p>
+          <h1>Poko Flix — Direct Cinema &amp; Vault Stream</h1>
+          <p>Stream movies and series with instant playback, speaker boost, fullscreen theater mode, and one-click MP4 downloads.</p>
         </div>
         <div class="stats-grid">
           <div class="stat-card">
@@ -593,30 +1101,39 @@
         </div>
       </div>
 
-      <!-- Player Stage -->
+      <!-- VIDEO PLAYER STAGE -->
       <section id="playerSection" aria-label="Video Player">
         <div class="player-header">
           <div>
-            <div class="player-title" id="playerTitle">Select any title to start streaming</div>
-            <div class="player-meta" id="playerMeta">Direct HTTPS MP4 Player</div>
+            <div class="player-title">
+              <span id="playerTitle">Select any title to start streaming</span>
+              <span class="live-pill" id="livePill">
+                <span class="eq-bars playing"><span></span><span></span><span></span></span>
+                Streaming
+              </span>
+            </div>
+            <div class="player-meta" id="playerMeta">Direct MP4 &amp; Local Vault Player</div>
           </div>
           <div class="control-group">
-            <button type="button" class="btn" id="largeScreenBtn">Large Screen</button>
-            <button type="button" class="btn btn-primary" id="fullscreenBtn">Fullscreen</button>
+            <button type="button" class="btn" id="largeScreenBtn">⛶ Large Screen</button>
+            <button type="button" class="btn btn-primary" id="fullscreenBtn">⛶ Fullscreen</button>
           </div>
         </div>
 
-        <video
-          id="pokoVideo"
-          controls
-          playsinline
-          preload="metadata"
-        ></video>
+        <div class="video-frame">
+          <video
+            id="pokoVideo"
+            controls
+            playsinline
+            preload="auto"
+          ></video>
+        </div>
 
         <div class="player-controls-bar">
           <div class="control-group">
-            <button type="button" class="btn btn-primary" id="speakerBtn" title="Tap to increase volume">
-              🔊 Speaker +Vol
+            <button type="button" class="btn btn-primary" id="speakerBtn" title="Unmute and boost speaker volume">
+              <span class="eq-bars" id="speakerEq"><span></span><span></span><span></span></span>
+              <span id="speakerBtnLabel">Speaker +Vol</span>
             </button>
             <span class="vol-readout" id="volReadout">100%</span>
             <input
@@ -627,18 +1144,23 @@
               max="100"
               step="5"
               value="100"
-              aria-label="Volume slider"
+              aria-label="Speaker volume slider"
             />
             <button type="button" class="btn" id="muteToggleBtn">Mute</button>
           </div>
+
           <div class="control-group">
-            <button type="button" class="btn" id="downloadCurrentBtn">Download MP4</button>
+            <button type="button" class="btn" id="downloadCurrentBtn">⬇ Download MP4</button>
           </div>
         </div>
-        <div class="player-status" id="playerStatus">Ready. Click Play on any card below.</div>
+
+        <div class="player-status">
+          <span class="status-badge" id="playerStatus">Ready. Click Play on any card below.</span>
+          <span id="playerSourceHint"></span>
+        </div>
       </section>
 
-      <!-- Filters & Search -->
+      <!-- FILTER & SEARCH -->
       <div class="toolbar">
         <div class="filter-pills" id="categoryPills">
           <button type="button" class="btn active" data-cat="all">All</button>
@@ -654,37 +1176,50 @@
         />
       </div>
 
-      <!-- Catalog Grid -->
+      <!-- CATALOG GRID -->
       <div class="catalog-grid" id="catalogGrid"></div>
     </section>
 
-    <!-- SEPARATE ADMIN PAGE (#admin) -->
-    <section id="adminView" class="page-view" aria-label="Admin Page">
+    <!-- =========================================================
+         SEPARATE ADMIN PAGE (#admin)
+         ========================================================= -->
+    <section id="adminView" class="page-view" aria-label="Separate Admin Vault Page">
+      <div class="admin-hero">
+        <div>
+          <h1>Poko Flix — Separate Admin Vault</h1>
+          <p style="color: var(--muted); font-size: 0.92rem;">
+            Dedicated publisher console. Upload local video files or paste direct video URLs, manage downloads, and export catalog data.
+          </p>
+        </div>
+        <button type="button" class="btn" id="backToStoreBtn">← Back to Storefront</button>
+      </div>
+
+      <!-- PASSWORD LOCK PANEL -->
       <div class="admin-panel" id="adminLockBox">
-        <h2>Poko Flix — Separate Admin Page</h2>
-        <p class="sub">Enter your Admin Vault Key to unlock publishing, telemetry, and default catalog export.</p>
+        <h2>Admin Vault Password Gate</h2>
+        <p class="sub">Enter your Admin Vault Password to unlock file uploads, URL publishing, and download controls.</p>
         <div class="control-group">
           <input
             type="password"
             id="adminKeyInput"
             class="search-input"
-            placeholder="Enter Admin Vault Key"
+            placeholder="Enter Admin Vault Password"
             autocomplete="off"
           />
-          <button type="button" class="btn btn-primary" id="unlockAdminBtn">Unlock Vault</button>
-          <button type="button" class="btn" id="backToStoreBtn">Back to Storefront</button>
+          <button type="button" class="btn btn-primary" id="unlockAdminBtn">Unlock Admin Vault</button>
         </div>
         <div class="status-msg" id="adminLockStatus"></div>
       </div>
 
+      <!-- UNLOCKED ADMIN CONSOLE -->
       <div id="adminUnlockedContent" style="display: none;">
         <div class="admin-panel">
           <div style="display:flex; justify-content:space-between; align-items:center; gap:1rem; flex-wrap:wrap;">
             <div>
-              <h2>Publish Direct MP4 Video</h2>
-              <p class="sub">Paste a direct HTTPS `.mp4` URL for all visitors, or pick a local file for single-device IndexedDB testing.</p>
+              <h2>Upload Movie or Series (File or URL)</h2>
+              <p class="sub">Upload a local video file (saved in browser IndexedDB) OR paste a direct HTTPS video URL.</p>
             </div>
-            <button type="button" class="btn" id="lockAdminBtn">Lock Vault</button>
+            <button type="button" class="btn" id="lockAdminBtn">🔒 Lock Vault</button>
           </div>
 
           <form id="uploadForm" class="form-grid">
@@ -704,24 +1239,31 @@
               <input type="text" id="itemGenre" placeholder="Sci-Fi / Action" />
             </div>
             <div class="field">
-              <label for="itemThumb">Poster Image URL (HTTPS)</label>
+              <label for="itemThumb">Poster Image URL (Optional)</label>
               <input type="url" id="itemThumb" placeholder="https://example.com/poster.jpg" />
             </div>
             <div class="field full">
-              <label for="itemVideoUrl">Direct MP4 Video URL (HTTPS)</label>
-              <input type="url" id="itemVideoUrl" placeholder="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" />
+              <label for="itemVideoUrl">Direct Video URL (MP4 / WebM)</label>
+              <input
+                type="url"
+                id="itemVideoUrl"
+                placeholder="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
+              />
             </div>
             <div class="field full">
-              <label for="itemLocalFile">Or Local Video File (Browser IndexedDB Only)</label>
-              <input type="file" id="itemLocalFile" accept="video/mp4,video/*" />
+              <label for="itemLocalFile">Or Upload Local Video File (MP4 / WebM / MOV)</label>
+              <input type="file" id="itemLocalFile" accept="video/mp4,video/webm,video/quicktime,video/*" />
             </div>
             <div class="field full">
               <label for="itemDesc">Synopsis</label>
-              <textarea id="itemDesc" rows="2" placeholder="Short description of the title..."></textarea>
+              <textarea id="itemDesc" rows="2" placeholder="Short description of the movie or episode..."></textarea>
             </div>
             <div class="field full">
               <div class="control-group">
-                <button type="submit" class="btn btn-primary">Upload to Poko Flix Vault</button>
+                <button type="submit" class="btn btn-primary">⬆ Publish to Poko Flix Vault</button>
+              </div>
+              <div class="upload-progress-wrap" id="uploadProgressWrap">
+                <div class="upload-progress-bar" id="uploadProgressBar"></div>
               </div>
             </div>
           </form>
@@ -729,7 +1271,8 @@
         </div>
 
         <div class="admin-panel">
-          <h2>Live Catalog &amp; Telemetry</h2>
+          <h2>Vault Inventory, Downloads &amp; Telemetry</h2>
+          <p class="sub">Test playback, download any title directly, or remove items from the vault.</p>
           <div class="table-wrap">
             <table>
               <thead>
@@ -740,7 +1283,7 @@
                   <th>Watching</th>
                   <th>Views</th>
                   <th>Downloads</th>
-                  <th>Action</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody id="adminTableBody"></tbody>
@@ -749,8 +1292,8 @@
         </div>
 
         <div class="admin-panel">
-          <h2>Export DEFAULT_ITEMS for GitHub Visitors</h2>
-          <p class="sub">Copy this JSON array into <code>DEFAULT_ITEMS</code> inside <code>index.html</code> and push to GitHub so every visitor sees your published titles.</p>
+          <h2>Export DEFAULT_ITEMS JSON</h2>
+          <p class="sub">Copy this JSON into <code>DEFAULT_ITEMS</code> inside <code>index.html</code> to publish permanently for all visitors.</p>
           <button type="button" class="btn btn-primary" id="copyExportBtn">Copy DEFAULT_ITEMS JSON</button>
           <pre class="export-box" id="exportBox"></pre>
         </div>
@@ -758,11 +1301,13 @@
     </section>
   </main>
 
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
   <script>
     const ADMIN_VAULT_KEY = 'poko-master-9842';
-    const STORAGE_KEY = 'poko_flix_vault_v1';
-    const SESSION_ADMIN_KEY = 'poko_flix_admin_unlocked';
-    const DB_NAME = 'poko_flix_media_db';
+    const STORAGE_KEY = 'poko_flix_vault_v2';
+    const SESSION_ADMIN_KEY = 'poko_flix_admin_unlocked_v2';
+    const DB_NAME = 'poko_flix_media_db_v2';
     const DB_STORE = 'blobs';
 
     const DEFAULT_ITEMS = [
@@ -775,7 +1320,7 @@
         thumbnailUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/BigBuckBunny.jpg',
         videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
         hasLocalBlob: false,
-        source: 'Direct HTTPS MP4',
+        source: 'Direct URL',
         watchingNow: 0,
         totalViews: 14,
         downloads: 3
@@ -789,7 +1334,7 @@
         thumbnailUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/ElephantsDream.jpg',
         videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
         hasLocalBlob: false,
-        source: 'Direct HTTPS MP4',
+        source: 'Direct URL',
         watchingNow: 0,
         totalViews: 9,
         downloads: 2
@@ -803,7 +1348,7 @@
         thumbnailUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/Sintel.jpg',
         videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4',
         hasLocalBlob: false,
-        source: 'Direct HTTPS MP4',
+        source: 'Direct URL',
         watchingNow: 0,
         totalViews: 21,
         downloads: 5
@@ -817,25 +1362,85 @@
     let activeObjectUrl = null;
     let failedAttempts = 0;
     let lockoutUntil = 0;
+    let toastTimer = null;
 
-    // Intro Animation & Synth
-    function playIntroSynth() {
+    function escapeHTML(str) {
+      return String(str ?? '').replace(/[&<>"']/g, (ch) => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      }[ch]));
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove('show'), 2600);
+    }
+
+    // =========================================================
+    // EXTRAORDINARY INTRO SOUND (WEB AUDIO SYNTHESIS)
+    // =========================================================
+    function playPokoIntroSound() {
       try {
         const AudioCtx = window.AudioContext || window.webkitAudioContext;
-        if (!AudioCtx) return;
+        if (!AudioCtx) return false;
         const ctx = new AudioCtx();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(110, ctx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(220, ctx.currentTime + 0.55);
-        gain.gain.setValueAtTime(0.08, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.1);
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start();
-        osc.stop(ctx.currentTime + 1.15);
-      } catch (_) {}
+        if (ctx.state === 'suspended') {
+          ctx.resume().catch(() => {});
+        }
+        const now = ctx.currentTime;
+
+        // 1. Deep Netflix-style sub-bass drop
+        const subOsc = ctx.createOscillator();
+        const subGain = ctx.createGain();
+        subOsc.type = 'sine';
+        subOsc.frequency.setValueAtTime(110, now);
+        subOsc.frequency.exponentialRampToValueAtTime(36, now + 1.45);
+        subGain.gain.setValueAtTime(0.001, now);
+        subGain.gain.linearRampToValueAtTime(0.32, now + 0.08);
+        subGain.gain.exponentialRampToValueAtTime(0.001, now + 2.1);
+        subOsc.connect(subGain);
+        subGain.connect(ctx.destination);
+        subOsc.start(now);
+        subOsc.stop(now + 2.15);
+
+        // 2. Sawtooth brassy power chord swell
+        const freqs = [110, 164.81, 220, 277.18];
+        freqs.forEach((f, idx) => {
+          const osc = ctx.createOscillator();
+          const filter = ctx.createBiquadFilter();
+          const gain = ctx.createGain();
+
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(f, now);
+          osc.frequency.exponentialRampToValueAtTime(f * 1.015, now + 1.8);
+
+          filter.type = 'lowpass';
+          filter.frequency.setValueAtTime(260, now);
+          filter.frequency.exponentialRampToValueAtTime(2400, now + 0.65);
+          filter.frequency.exponentialRampToValueAtTime(520, now + 2.0);
+
+          const peak = 0.075 / (idx * 0.35 + 1);
+          gain.gain.setValueAtTime(0.001, now);
+          gain.gain.linearRampToValueAtTime(peak, now + 0.14 + idx * 0.04);
+          gain.gain.exponentialRampToValueAtTime(0.0008, now + 2.05);
+
+          osc.connect(filter);
+          filter.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now);
+          osc.stop(now + 2.1);
+        });
+
+        return ctx.state === 'running';
+      } catch (_) {
+        return false;
+      }
     }
 
     function dismissIntro() {
@@ -843,13 +1448,21 @@
       if (overlay) overlay.classList.add('hidden');
     }
 
-    document.getElementById('skipIntroBtn').addEventListener('click', dismissIntro);
-    window.addEventListener('load', () => {
-      playIntroSynth();
-      setTimeout(dismissIntro, 1600);
+    document.getElementById('enableAudioIntroBtn').addEventListener('click', () => {
+      playPokoIntroSound();
+      showToast('Poko Flix intro sound triggered');
     });
 
-    // Separate Admin Page Routing (#admin vs Storefront)
+    document.getElementById('skipIntroBtn').addEventListener('click', dismissIntro);
+
+    window.addEventListener('load', () => {
+      playPokoIntroSound();
+      setTimeout(dismissIntro, 2400);
+    });
+
+    // =========================================================
+    // SEPARATE ADMIN PAGE ROUTING (#admin)
+    // =========================================================
     function syncRoute() {
       const isAdmin = window.location.hash === '#admin';
       document.getElementById('storefrontView').classList.toggle('active', !isAdmin);
@@ -862,20 +1475,31 @@
     }
 
     window.addEventListener('hashchange', syncRoute);
+
+    document.getElementById('brandLink').addEventListener('click', (e) => {
+      e.preventDefault();
+      window.location.hash = '#home';
+      syncRoute();
+    });
+
     document.getElementById('navStoreBtn').addEventListener('click', () => {
       window.location.hash = '#home';
       syncRoute();
     });
+
     document.getElementById('navAdminBtn').addEventListener('click', () => {
       window.location.hash = '#admin';
       syncRoute();
     });
+
     document.getElementById('backToStoreBtn').addEventListener('click', () => {
       window.location.hash = '#home';
       syncRoute();
     });
 
-    // Storage Helpers
+    // =========================================================
+    // STORAGE & INDEXEDDB BLOB HELPERS
+    // =========================================================
     function loadVault() {
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
@@ -926,31 +1550,54 @@
       });
     }
 
-    // Player Controls: Large Screen, Fullscreen, Speaker Volume Boost
+    async function deleteBlobFromDB(id) {
+      const db = await openMediaDB();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(DB_STORE, 'readwrite');
+        tx.objectStore(DB_STORE).delete(id);
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+      });
+    }
+
+    // =========================================================
+    // PLAYER CONTROLS: SPEAKER, FULLSCREEN, LARGE SCREEN, PLAYBACK FIX
+    // =========================================================
     const playerSection = document.getElementById('playerSection');
     const pokoVideo = document.getElementById('pokoVideo');
     const largeScreenBtn = document.getElementById('largeScreenBtn');
     const fullscreenBtn = document.getElementById('fullscreenBtn');
     const speakerBtn = document.getElementById('speakerBtn');
+    const speakerEq = document.getElementById('speakerEq');
+    const speakerBtnLabel = document.getElementById('speakerBtnLabel');
     const volumeSlider = document.getElementById('volumeSlider');
     const volReadout = document.getElementById('volReadout');
     const muteToggleBtn = document.getElementById('muteToggleBtn');
     const playerStatus = document.getElementById('playerStatus');
+    const playerSourceHint = document.getElementById('playerSourceHint');
 
     function syncVolumeUI() {
       const pct = pokoVideo.muted ? 0 : Math.round(pokoVideo.volume * 100);
       volReadout.textContent = pct + '%';
       volumeSlider.value = String(pct);
-      speakerBtn.textContent = pokoVideo.muted || pct === 0 ? '🔇 Speaker +Vol' : '🔊 Speaker +Vol';
+      const isMutedOrZero = pokoVideo.muted || pct === 0;
+      speakerBtnLabel.textContent = isMutedOrZero ? 'Speaker Muted' : 'Speaker +Vol';
+      muteToggleBtn.textContent = isMutedOrZero ? 'Unmute' : 'Mute';
+      speakerEq.classList.toggle('playing', !isMutedOrZero && !pokoVideo.paused);
     }
 
-    // Tapping Speaker button unmutes and increases volume by +25%
+    // Speaker button: unmutes and boosts volume (+25%, wrapping from 100% -> 25% if already 100%)
     speakerBtn.addEventListener('click', () => {
       pokoVideo.muted = false;
-      const next = Math.min(1, Number((pokoVideo.volume + 0.25).toFixed(2)));
-      pokoVideo.volume = next === 0 ? 0.25 : next;
+      let next = Number((pokoVideo.volume + 0.25).toFixed(2));
+      if (pokoVideo.volume >= 1 && !pokoVideo.muted) {
+        next = 0.25;
+      } else if (next > 1) {
+        next = 1;
+      }
+      pokoVideo.volume = next;
       syncVolumeUI();
-      playerStatus.textContent = 'Speaker volume set to ' + Math.round(pokoVideo.volume * 100) + '%.';
+      showToast(`Speaker volume: ${Math.round(pokoVideo.volume * 100)}%`);
     });
 
     volumeSlider.addEventListener('input', () => {
@@ -963,16 +1610,18 @@
     muteToggleBtn.addEventListener('click', () => {
       pokoVideo.muted = !pokoVideo.muted;
       syncVolumeUI();
+      showToast(pokoVideo.muted ? 'Speaker muted' : 'Speaker unmuted');
     });
 
     // Large Screen (Theater Mode)
     largeScreenBtn.addEventListener('click', () => {
       const isLarge = playerSection.classList.toggle('large-screen');
       largeScreenBtn.classList.toggle('active', isLarge);
-      largeScreenBtn.textContent = isLarge ? 'Normal Screen' : 'Large Screen';
+      largeScreenBtn.textContent = isLarge ? '◩ Normal Screen' : '⛶ Large Screen';
+      showToast(isLarge ? 'Large Screen enabled' : 'Normal Screen restored');
     });
 
-    // Fullscreen (synchronous inside click handler)
+    // Fullscreen (synchronous user-gesture call)
     fullscreenBtn.addEventListener('click', () => {
       const fsEl = document.fullscreenElement || document.webkitFullscreenElement;
       if (fsEl) {
@@ -991,23 +1640,38 @@
       }
     });
 
-    pokoVideo.addEventListener('error', () => {
-      const code = pokoVideo.error ? pokoVideo.error.code : 0;
-      playerStatus.textContent = 'Video error (code ' + code + '). Check that the URL is a direct HTTPS .mp4 link.';
+    document.addEventListener('fullscreenchange', () => {
+      const active = Boolean(document.fullscreenElement);
+      fullscreenBtn.classList.toggle('active', active);
+      fullscreenBtn.textContent = active ? '✕ Exit Fullscreen' : '⛶ Fullscreen';
     });
 
-    pokoVideo.addEventListener('play', () => {
+    // Video lifecycle events
+    pokoVideo.addEventListener('loadedmetadata', () => {
+      const dur = Number.isFinite(pokoVideo.duration)
+        ? `${Math.floor(pokoVideo.duration / 60)}m ${Math.floor(pokoVideo.duration % 60)}s`
+        : 'Live/Stream';
+      playerSourceHint.textContent = `Duration: ${dur}`;
+    });
+
+    pokoVideo.addEventListener('playing', () => {
+      playerSection.classList.add('is-playing');
+      syncVolumeUI();
+      renderCatalog();
       if (!activeItemId) return;
       const item = vaultItems.find((x) => x.id === activeItemId);
       if (item) {
         item.watchingNow = 1;
         saveVault();
-        renderStats();
+        renderStats(true);
         renderAdminTable();
       }
     });
 
     function stopCurrentWatching() {
+      playerSection.classList.remove('is-playing');
+      syncVolumeUI();
+      renderCatalog();
       if (!activeItemId) return;
       const item = vaultItems.find((x) => x.id === activeItemId);
       if (item && item.watchingNow > 0) {
@@ -1019,8 +1683,26 @@
     }
 
     pokoVideo.addEventListener('pause', stopCurrentWatching);
-    pokoVideo.addEventListener('ended', stopCurrentWatching);
+    pokoVideo.addEventListener('ended', () => {
+      stopCurrentWatching();
+      playerStatus.textContent = 'Finished playback.';
+    });
 
+    pokoVideo.addEventListener('error', () => {
+      playerSection.classList.remove('is-playing');
+      const err = pokoVideo.error;
+      const code = err ? err.code : 0;
+      const reasons = {
+        1: 'Playback aborted.',
+        2: 'Network error while fetching video.',
+        3: 'Video decoding failed (unsupported codec/container).',
+        4: 'Video source not supported or unreachable.'
+      };
+      playerStatus.textContent = `Playback error (${reasons[code] || 'Code ' + code}). Verify direct video URL or re-upload file.`;
+      showToast('Video playback failed — check source');
+    });
+
+    // Fixed playItem() — reliable across HTTPS URLs and IndexedDB Blobs
     async function playItem(id) {
       const item = vaultItems.find((x) => x.id === id);
       if (!item) return;
@@ -1031,15 +1713,25 @@
       saveVault();
 
       document.getElementById('playerTitle').textContent = item.title;
-      document.getElementById('playerMeta').textContent = item.category.toUpperCase() + ' • ' + (item.genre || 'General');
-      playerStatus.textContent = 'Loading stream...';
+      document.getElementById('playerMeta').textContent =
+        `${item.category.toUpperCase()} • ${item.genre || 'General'} • ${item.source || 'Direct URL'}`;
+      playerStatus.textContent = `Loading "${item.title}"...`;
+      playerSourceHint.textContent = '';
+
+      // Cleanly reset previous source
+      pokoVideo.pause();
+      pokoVideo.removeAttribute('src');
+      while (pokoVideo.firstChild) {
+        pokoVideo.removeChild(pokoVideo.firstChild);
+      }
+      pokoVideo.load();
 
       if (activeObjectUrl) {
         URL.revokeObjectURL(activeObjectUrl);
         activeObjectUrl = null;
       }
 
-      let srcUrl = item.videoUrl || '';
+      let srcUrl = (item.videoUrl || '').trim();
       if (item.hasLocalBlob) {
         const blob = await getBlobFromDB(item.id);
         if (blob) {
@@ -1049,106 +1741,163 @@
       }
 
       if (!srcUrl) {
-        playerStatus.textContent = 'No video URL attached to this title.';
+        playerStatus.textContent = 'No video URL or uploaded file attached to this title.';
         renderStats();
+        renderCatalog();
         return;
       }
 
+      // Assign src directly and call load() + play()
       pokoVideo.src = srcUrl;
       pokoVideo.load();
-      pokoVideo.play()
-        .then(() => {
-          playerStatus.textContent = 'Streaming: ' + item.title;
-        })
-        .catch((err) => {
-          playerStatus.textContent = 'Playback blocked or failed (' + err.message + '). Tap play on the video controls.';
-        });
 
-      renderStats();
+      renderStats(true);
+      renderCatalog();
       renderAdminTable();
-      playerSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+      const playerTop = playerSection.getBoundingClientRect().top + window.scrollY - 90;
+      window.scrollTo({ top: Math.max(0, playerTop), behavior: 'smooth' });
+
+      try {
+        await pokoVideo.play();
+        playerStatus.textContent = `Now playing: ${item.title}`;
+      } catch (err) {
+        // Browser autoplay policy fallback: source is loaded and ready for immediate click
+        playerStatus.textContent = `Loaded "${item.title}". Click the video Play button to start.`;
+      }
     }
 
-    function downloadItem(id) {
+    // =========================================================
+    // DOWNLOAD SUPPORT (REMOTE URL + LOCAL INDEXEDDB BLOB)
+    // =========================================================
+    async function downloadItem(id) {
       const item = vaultItems.find((x) => x.id === id);
-      if (!item || !item.videoUrl) return;
+      if (!item) return;
+
+      let href = (item.videoUrl || '').trim();
+      let tempUrl = null;
+
+      if (item.hasLocalBlob) {
+        const blob = await getBlobFromDB(item.id);
+        if (blob) {
+          tempUrl = URL.createObjectURL(blob);
+          href = tempUrl;
+        }
+      }
+
+      if (!href) {
+        showToast('No downloadable video file or URL found');
+        return;
+      }
+
       item.downloads = (item.downloads || 0) + 1;
       saveVault();
+      renderCatalog();
       renderAdminTable();
 
       const a = document.createElement('a');
-      a.href = item.videoUrl;
-      a.download = (item.title || 'poko-flix') + '.mp4';
+      a.href = href;
+      const safeName = (item.title || 'poko-flix').replace(/[^a-z0-9-_]+/gi, '_');
+      a.download = `${safeName}.mp4`;
       a.target = '_blank';
       a.rel = 'noopener';
       document.body.appendChild(a);
       a.click();
       a.remove();
+
+      showToast(`Downloading "${item.title}"`);
+      if (tempUrl) {
+        setTimeout(() => URL.revokeObjectURL(tempUrl), 5000);
+      }
     }
 
     document.getElementById('downloadCurrentBtn').addEventListener('click', () => {
-      if (activeItemId) downloadItem(activeItemId);
+      if (!activeItemId) {
+        showToast('Select a title first');
+        return;
+      }
+      downloadItem(activeItemId);
     });
 
-    // Storefront Rendering
-    function renderStats() {
-      document.getElementById('statTitles').textContent = String(vaultItems.length);
-      const watching = vaultItems.reduce((sum, x) => sum + (x.watchingNow || 0), 0);
-      const views = vaultItems.reduce((sum, x) => sum + (x.totalViews || 0), 0);
-      document.getElementById('statWatching').textContent = String(watching);
-      document.getElementById('statViews').textContent = String(views);
+    // =========================================================
+    // STOREFRONT RENDERING
+    // =========================================================
+    function renderStats(bump = false) {
+      const titlesEl = document.getElementById('statTitles');
+      const watchingEl = document.getElementById('statWatching');
+      const viewsEl = document.getElementById('statViews');
+
+      titlesEl.textContent = String(vaultItems.length);
+      watchingEl.textContent = String(vaultItems.reduce((s, x) => s + (x.watchingNow || 0), 0));
+      viewsEl.textContent = String(vaultItems.reduce((s, x) => s + (x.totalViews || 0), 0));
+
+      if (bump) {
+        [titlesEl, watchingEl, viewsEl].forEach((el) => {
+          el.classList.remove('bump');
+          void el.offsetWidth;
+          el.classList.add('bump');
+          setTimeout(() => el.classList.remove('bump'), 350);
+        });
+      }
     }
 
     function renderCatalog() {
       const grid = document.getElementById('catalogGrid');
-      const q = currentSearch.trim().toLowerCase();
+      const query = currentSearch.trim().toLowerCase();
 
       const filtered = vaultItems.filter((item) => {
-        const matchesCat = currentCategory === 'all' || item.category === currentCategory;
-        const hay = (item.title + ' ' + item.genre + ' ' + item.description).toLowerCase();
-        const matchesSearch = !q || hay.includes(q);
-        return matchesCat && matchesSearch;
+        const catOk = currentCategory === 'all' || item.category === currentCategory;
+        if (!catOk) return false;
+        if (!query) return true;
+        return (
+          (item.title && item.title.toLowerCase().includes(query)) ||
+          (item.genre && item.genre.toLowerCase().includes(query)) ||
+          (item.description && item.description.toLowerCase().includes(query))
+        );
       });
 
       if (!filtered.length) {
-        grid.innerHTML = '<p style="color:var(--muted)">No matching titles found.</p>';
+        grid.innerHTML = '<p class="player-status">No matching movies or series in Poko Flix Vault.</p>';
         return;
       }
 
-      grid.innerHTML = filtered.map((item) => {
-        const thumb = item.thumbnailUrl || 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/BigBuckBunny.jpg';
+      grid.innerHTML = filtered.map((item, idx) => {
+        const isCurrent = item.id === activeItemId;
+        const delay = Math.min(idx * 55, 420);
+        const thumbHtml = item.thumbnailUrl
+          ? `<img src="${escapeHTML(item.thumbnailUrl)}" alt="${escapeHTML(item.title)}" loading="lazy" />`
+          : `<div style="width:100%;height:100%;display:grid;place-items:center;font-size:2.4rem;font-weight:900;color:rgba(255,30,66,0.75);">P</div>`;
+
         return `
-          <article class="card">
+          <article class="card ${isCurrent ? 'is-active-card' : ''}" style="animation-delay:${delay}ms">
             <div class="card-thumb">
-              <img src="${escapeAttr(thumb)}" alt="${escapeAttr(item.title)}" loading="lazy" />
-              <span class="card-badge">${escapeHtml(item.category)}</span>
+              ${thumbHtml}
+              <span class="card-badge">${escapeHTML(item.category)}</span>
             </div>
             <div class="card-body">
-              <div class="card-title">${escapeHtml(item.title)}</div>
-              <div class="card-meta">${escapeHtml(item.genre || 'General')} • ${item.totalViews || 0} views</div>
-              <div class="card-desc">${escapeHtml(item.description || '')}</div>
+              <div class="card-title">${escapeHTML(item.title)}</div>
+              <div class="card-meta">${escapeHTML(item.genre || 'General')} &bull; ${escapeHTML(item.source || 'Direct URL')}</div>
+              <div class="card-desc">${escapeHTML(item.description || 'Direct stream available.')}</div>
+              <div class="card-meta">Views: ${Number(item.totalViews || 0)} &bull; Downloads: ${Number(item.downloads || 0)}</div>
               <div class="card-actions">
-                <button type="button" class="btn btn-primary" data-play="${escapeAttr(item.id)}">Play</button>
-                <button type="button" class="btn" data-dl="${escapeAttr(item.id)}">Download</button>
+                <button type="button" class="btn btn-primary" data-action="play" data-id="${escapeHTML(item.id)}">
+                  ${isCurrent && !pokoVideo.paused ? 'Playing' : '▶ Play'}
+                </button>
+                <button type="button" class="btn" data-action="download" data-id="${escapeHTML(item.id)}">
+                  ⬇ Download
+                </button>
               </div>
             </div>
           </article>
         `;
       }).join('');
-
-      grid.querySelectorAll('[data-play]').forEach((btn) => {
-        btn.addEventListener('click', () => playItem(btn.getAttribute('data-play')));
-      });
-      grid.querySelectorAll('[data-dl]').forEach((btn) => {
-        btn.addEventListener('click', () => downloadItem(btn.getAttribute('data-dl')));
-      });
     }
 
     document.getElementById('categoryPills').addEventListener('click', (e) => {
-      const btn = e.target.closest('[data-cat]');
+      const btn = e.target.closest('button[data-cat]');
       if (!btn) return;
-      currentCategory = btn.getAttribute('data-cat');
-      document.querySelectorAll('#categoryPills [data-cat]').forEach((b) => {
+      currentCategory = btn.dataset.cat;
+      document.querySelectorAll('#categoryPills button').forEach((b) => {
         b.classList.toggle('active', b === btn);
       });
       renderCatalog();
@@ -1159,15 +1908,37 @@
       renderCatalog();
     });
 
-    // Separate Admin Page Logic
+    document.getElementById('catalogGrid').addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-action]');
+      if (!btn) return;
+      const id = btn.dataset.id;
+      if (btn.dataset.action === 'play') playItem(id);
+      if (btn.dataset.action === 'download') downloadItem(id);
+    });
+
+    // =========================================================
+    // ADMIN VAULT PASSWORD GATE, FILE/URL UPLOAD, DOWNLOADS
+    // =========================================================
     function isAdminUnlocked() {
-      return sessionStorage.getItem(SESSION_ADMIN_KEY) === '1';
+      try {
+        return sessionStorage.getItem(SESSION_ADMIN_KEY) === '1';
+      } catch (_) {
+        return false;
+      }
+    }
+
+    function setAdminUnlocked(val) {
+      try {
+        if (val) sessionStorage.setItem(SESSION_ADMIN_KEY, '1');
+        else sessionStorage.removeItem(SESSION_ADMIN_KEY);
+      } catch (_) {}
+      updateAdminVisibility();
     }
 
     function updateAdminVisibility() {
       const unlocked = isAdminUnlocked();
-      document.getElementById('adminUnlockedContent').style.display = unlocked ? 'block' : 'none';
       document.getElementById('adminLockBox').style.display = unlocked ? 'none' : 'block';
+      document.getElementById('adminUnlockedContent').style.display = unlocked ? 'block' : 'none';
       if (unlocked) {
         renderAdminTable();
         renderExportBox();
@@ -1175,85 +1946,55 @@
     }
 
     document.getElementById('unlockAdminBtn').addEventListener('click', () => {
-      const now = Date.now();
+      const lockBox = document.getElementById('adminLockBox');
       const statusEl = document.getElementById('adminLockStatus');
+      const now = Date.now();
+
       if (now < lockoutUntil) {
-        statusEl.textContent = 'Too many attempts. Wait a few seconds.';
-        statusEl.className = 'status-msg error';
+        const secs = Math.ceil((lockoutUntil - now) / 1000);
+        statusEl.textContent = `Vault locked due to attempts. Retry in ${secs}s.`;
+        statusEl.classList.add('error');
+        lockBox.classList.remove('shake');
+        void lockBox.offsetWidth;
+        lockBox.classList.add('shake');
         return;
       }
 
       const entered = document.getElementById('adminKeyInput').value.trim();
       if (entered === ADMIN_VAULT_KEY) {
         failedAttempts = 0;
-        sessionStorage.setItem(SESSION_ADMIN_KEY, '1');
+        lockoutUntil = 0;
+        document.getElementById('adminKeyInput').value = '';
         statusEl.textContent = '';
-        updateAdminVisibility();
+        statusEl.classList.remove('error');
+        setAdminUnlocked(true);
+        showToast('Admin Vault unlocked');
       } else {
         failedAttempts += 1;
-        if (failedAttempts >= 3) {
-          lockoutUntil = Date.now() + 10000;
+        if (failedAttempts >= 5) {
+          lockoutUntil = Date.now() + 30000;
           failedAttempts = 0;
         }
-        statusEl.textContent = 'Invalid Admin Vault Key.';
-        statusEl.className = 'status-msg error';
+        statusEl.textContent = 'Incorrect Admin Vault Password.';
+        statusEl.classList.add('error');
+        lockBox.classList.remove('shake');
+        void lockBox.offsetWidth;
+        lockBox.classList.add('shake');
+      }
+    });
+
+    document.getElementById('adminKeyInput').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        document.getElementById('unlockAdminBtn').click();
       }
     });
 
     document.getElementById('lockAdminBtn').addEventListener('click', () => {
-      sessionStorage.removeItem(SESSION_ADMIN_KEY);
-      document.getElementById('adminKeyInput').value = '';
-      updateAdminVisibility();
-    });
-
-    document.getElementById('uploadForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const statusEl = document.getElementById('uploadStatus');
-      const title = document.getElementById('itemTitle').value.trim();
-      const category = document.getElementById('itemCategory').value;
-      const genre = document.getElementById('itemGenre').value.trim() || 'General';
-      const thumbnailUrl = document.getElementById('itemThumb').value.trim();
-      const videoUrl = document.getElementById('itemVideoUrl').value.trim();
-      const description = document.getElementById('itemDesc').value.trim();
-      const localFile = document.getElementById('itemLocalFile').files[0];
-
-      if (!title || (!videoUrl && !localFile)) {
-        statusEl.textContent = 'Provide a title and either a Direct MP4 Video URL or a local file.';
-        statusEl.className = 'status-msg error';
-        return;
-      }
-
-      const id = 'poko-' + Date.now();
-      let hasLocalBlob = false;
-      if (localFile) {
-        await saveBlobToDB(id, localFile);
-        hasLocalBlob = true;
-      }
-
-      vaultItems.unshift({
-        id,
-        title,
-        category,
-        genre,
-        description,
-        thumbnailUrl,
-        videoUrl,
-        hasLocalBlob,
-        source: hasLocalBlob ? 'IndexedDB (Local)' : 'Direct HTTPS MP4',
-        watchingNow: 0,
-        totalViews: 0,
-        downloads: 0
-      });
-
-      saveVault();
-      renderStats();
-      renderCatalog();
-      renderAdminTable();
-      renderExportBox();
-
-      e.target.reset();
-      statusEl.textContent = 'Published "' + title + '" to Poko Flix Vault.';
-      statusEl.className = 'status-msg';
+      setAdminUnlocked(false);
+      document.getElementById('adminLockStatus').textContent = 'Admin Vault locked.';
+      document.getElementById('adminLockStatus').classList.remove('error');
+      showToast('Admin Vault locked');
     });
 
     function renderAdminTable() {
@@ -1261,64 +2002,171 @@
       if (!tbody) return;
       tbody.innerHTML = vaultItems.map((item) => `
         <tr>
-          <td>${escapeHtml(item.title)}</td>
-          <td>${escapeHtml(item.category)}</td>
-          <td>${escapeHtml(item.source || 'Direct')}</td>
-          <td>${item.watchingNow || 0}</td>
-          <td>${item.totalViews || 0}</td>
-          <td>${item.downloads || 0}</td>
+          <td><strong>${escapeHTML(item.title)}</strong></td>
+          <td>${escapeHTML(item.category)}</td>
+          <td>${escapeHTML(item.source || 'Direct URL')}</td>
+          <td>${Number(item.watchingNow || 0)}</td>
+          <td>${Number(item.totalViews || 0)}</td>
+          <td>${Number(item.downloads || 0)}</td>
           <td>
-            <button type="button" class="btn" data-del="${escapeAttr(item.id)}">Remove</button>
+            <div class="control-group">
+              <button type="button" class="btn" data-admin-action="play" data-id="${escapeHTML(item.id)}">▶ Test</button>
+              <button type="button" class="btn" data-admin-action="download" data-id="${escapeHTML(item.id)}">⬇ Download</button>
+              <button type="button" class="btn" data-admin-action="remove" data-id="${escapeHTML(item.id)}">🗑 Remove</button>
+            </div>
           </td>
         </tr>
       `).join('');
-
-      tbody.querySelectorAll('[data-del]').forEach((btn) => {
-        btn.addEventListener('click', () => {
-          const delId = btn.getAttribute('data-del');
-          vaultItems = vaultItems.filter((x) => x.id !== delId);
-          saveVault();
-          renderStats();
-          renderCatalog();
-          renderAdminTable();
-          renderExportBox();
-        });
-      });
     }
 
     function renderExportBox() {
       const box = document.getElementById('exportBox');
       if (!box) return;
-      const exportable = vaultItems.map(({ hasLocalBlob, watchingNow, ...rest }) => ({
+      const exportable = vaultItems.map(({ hasLocalBlob, ...rest }) => ({
         ...rest,
         hasLocalBlob: false,
         watchingNow: 0
       }));
-      box.textContent = 'const DEFAULT_ITEMS = ' + JSON.stringify(exportable, null, 2) + ';';
+      box.textContent = JSON.stringify(exportable, null, 2);
     }
 
-    document.getElementById('copyExportBtn').addEventListener('click', () => {
-      const text = document.getElementById('exportBox').textContent;
-      navigator.clipboard?.writeText(text).catch(() => {});
+    document.getElementById('adminTableBody').addEventListener('click', async (e) => {
+      const btn = e.target.closest('button[data-admin-action]');
+      if (!btn || !isAdminUnlocked()) return;
+      const id = btn.dataset.id;
+      const action = btn.dataset.adminAction;
+
+      if (action === 'play') {
+        window.location.hash = '#home';
+        syncRoute();
+        playItem(id);
+        return;
+      }
+
+      if (action === 'download') {
+        downloadItem(id);
+        return;
+      }
+
+      if (action === 'remove') {
+        const target = vaultItems.find((x) => x.id === id);
+        if (target && target.hasLocalBlob) {
+          await deleteBlobFromDB(id).catch(() => {});
+        }
+        if (activeItemId === id) {
+          pokoVideo.pause();
+          pokoVideo.removeAttribute('src');
+          pokoVideo.load();
+          activeItemId = null;
+          document.getElementById('playerTitle').textContent = 'Select any title to start streaming';
+          playerStatus.textContent = 'Ready. Click Play on any card below.';
+        }
+        vaultItems = vaultItems.filter((x) => x.id !== id);
+        saveVault();
+        renderStats(true);
+        renderCatalog();
+        renderAdminTable();
+        renderExportBox();
+        showToast('Removed title from Vault');
+      }
     });
 
-    function escapeHtml(str) {
-      return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;');
-    }
+    // Upload Form (Supports File Upload OR Direct URL)
+    document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!isAdminUnlocked()) return;
 
-    function escapeAttr(str) {
-      return escapeHtml(str).replace(/'/g, '&#39;');
-    }
+      const statusEl = document.getElementById('uploadStatus');
+      const progressWrap = document.getElementById('uploadProgressWrap');
+      const progressBar = document.getElementById('uploadProgressBar');
 
-    // Init
+      const title = document.getElementById('itemTitle').value.trim();
+      const category = document.getElementById('itemCategory').value;
+      const genre = document.getElementById('itemGenre').value.trim() || 'General';
+      const thumbnailUrl = document.getElementById('itemThumb').value.trim();
+      const videoUrl = document.getElementById('itemVideoUrl').value.trim();
+      const localFileInput = document.getElementById('itemLocalFile');
+      const localFile = localFileInput.files && localFileInput.files[0] ? localFileInput.files[0] : null;
+      const description = document.getElementById('itemDesc').value.trim();
+
+      if (!title || (!videoUrl && !localFile)) {
+        statusEl.textContent = 'Provide a title and either a local video file or a direct video URL.';
+        statusEl.classList.add('error');
+        return;
+      }
+
+      progressWrap.classList.add('active');
+      progressBar.style.width = '35%';
+
+      const id = 'poko-' + Date.now();
+      let hasLocalBlob = false;
+      let source = 'Direct URL';
+
+      try {
+        if (localFile) {
+          progressBar.style.width = '70%';
+          await saveBlobToDB(id, localFile);
+          hasLocalBlob = true;
+          source = 'Uploaded File (IndexedDB)';
+        }
+
+        progressBar.style.width = '100%';
+
+        vaultItems.unshift({
+          id,
+          title,
+          category,
+          genre,
+          description,
+          thumbnailUrl,
+          videoUrl: localFile ? '' : videoUrl,
+          hasLocalBlob,
+          source,
+          watchingNow: 0,
+          totalViews: 0,
+          downloads: 0
+        });
+
+        saveVault();
+        renderStats(true);
+        renderCatalog();
+        renderAdminTable();
+        renderExportBox();
+
+        e.target.reset();
+        statusEl.textContent = `Published "${title}" (${source}).`;
+        statusEl.classList.remove('error');
+        showToast(`Published "${title}"`);
+      } catch (err) {
+        statusEl.textContent = `Upload failed: ${err.message || err}`;
+        statusEl.classList.add('error');
+      } finally {
+        setTimeout(() => {
+          progressWrap.classList.remove('active');
+          progressBar.style.width = '0%';
+        }, 500);
+      }
+    });
+
+    document.getElementById('copyExportBtn').addEventListener('click', async () => {
+      const text = document.getElementById('exportBox').textContent;
+      try {
+        await navigator.clipboard.writeText(text);
+        showToast('Copied DEFAULT_ITEMS JSON');
+      } catch (_) {
+        showToast('Select and copy JSON manually');
+      }
+    });
+
+    // =========================================================
+    // BOOT
+    // =========================================================
     vaultItems = loadVault();
     syncVolumeUI();
     renderStats();
     renderCatalog();
+    renderAdminTable();
+    renderExportBox();
     syncRoute();
   </script>
 </body>
