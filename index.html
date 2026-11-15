@@ -472,7 +472,7 @@
       position: fixed;
       inset: 0;
       z-index: 5000;
-      background: rgba(0, 0, 0, 0.9);
+      background: rgba(0, 0, 0, 0.92);
       backdrop-filter: blur(10px);
       display: none;
       align-items: center;
@@ -499,6 +499,7 @@
       justify-content: space-between;
       padding: 14px 18px;
       border-bottom: 1px solid var(--border-subtle);
+      gap: 12px;
     }
 
     .player-header h3 {
@@ -557,7 +558,8 @@
       font-size: 0.82rem;
     }
 
-    .stream-url-form button {
+    .stream-url-form button,
+    .cinema-mode-btn {
       background: var(--crimson);
       border: none;
       color: #fff;
@@ -566,6 +568,11 @@
       font-weight: 700;
       cursor: pointer;
       font-size: 0.82rem;
+    }
+
+    .cinema-mode-btn {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.18);
     }
 
     .player-status {
@@ -663,13 +670,14 @@
         <button class="close-player-btn" id="closePlayerBtn" title="Close (Esc)">✕</button>
       </div>
       <div class="video-wrap">
-        <video id="pokoVideo" controls playsinline preload="metadata"></video>
+        <video id="pokoVideo" controls autoplay playsinline muted></video>
       </div>
       <div class="player-footer">
         <form class="stream-url-form" id="customUrlForm">
-          <input type="url" id="customUrlInput" placeholder="Paste any direct .mp4 video URL and hit Load..." />
-          <button type="submit">Load Stream</button>
+          <input type="url" id="customUrlInput" placeholder="Paste any direct .mp4 / .webm URL..." />
+          <button type="submit">Load URL</button>
         </form>
+        <button type="button" class="cinema-mode-btn" id="useCinemaStreamBtn">🎬 Live Cinema Stream</button>
         <span class="player-status" id="playerStatus">Ready</span>
       </div>
     </div>
@@ -689,56 +697,72 @@
   <div class="fullscreen-hint">Press <kbd>F</kbd> to toggle full screen</div>
 
   <script>
-    // Catalog with real playable test MP4 streams (replace URLs with your own hosted MP4/CDN links)
     const CATALOG = [
-      {
-        id: "inception",
-        title: "INCEPTION",
-        type: "movie",
-        bg: "linear-gradient(135deg, #1b2838, #0b111a)",
-        videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
-      },
-      {
-        id: "interstellar",
-        title: "INTERSTELLAR",
-        type: "movie",
-        bg: "linear-gradient(135deg, #2d231e, #120d0a)",
-        videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4"
-      },
-      {
-        id: "the-batman",
-        title: "THE BATMAN",
-        type: "movie",
-        bg: "linear-gradient(135deg, #3b090e, #120406)",
-        videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4"
-      },
-      {
-        id: "avatar",
-        title: "AVATAR",
-        type: "movie",
-        bg: "linear-gradient(135deg, #0d2b45, #05111c)",
-        videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4"
-      },
-      {
-        id: "joker",
-        title: "JOKER",
-        type: "series",
-        bg: "linear-gradient(135deg, #283b12, #0e1407)",
-        videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4"
-      },
-      {
-        id: "spider-man",
-        title: "SPIDER-MAN: NO WAY HOME",
-        type: "movie",
-        bg: "linear-gradient(135deg, #3d1228, #14060d)",
-        videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4"
-      }
+      { id: "inception", title: "INCEPTION", type: "movie", bg: "linear-gradient(135deg, #1b2838, #0b111a)", videoUrl: "" },
+      { id: "interstellar", title: "INTERSTELLAR", type: "movie", bg: "linear-gradient(135deg, #2d231e, #120d0a)", videoUrl: "" },
+      { id: "the-batman", title: "THE BATMAN", type: "movie", bg: "linear-gradient(135deg, #3b090e, #120406)", videoUrl: "" },
+      { id: "avatar", title: "AVATAR", type: "movie", bg: "linear-gradient(135deg, #0d2b45, #05111c)", videoUrl: "" },
+      { id: "joker", title: "JOKER", type: "series", bg: "linear-gradient(135deg, #283b12, #0e1407)", videoUrl: "" },
+      { id: "spider-man", title: "SPIDER-MAN: NO WAY HOME", type: "movie", bg: "linear-gradient(135deg, #3d1228, #14060d)", videoUrl: "" }
     ];
 
     const myList = new Set(["inception"]);
     let currentFilter = "all";
+    let activeTitle = "POKO FLIX";
 
-    // Render Carousel Cards
+    // Built-in Live Cinema Canvas Stream (always playable in <video> via srcObject)
+    const cinemaCanvas = document.createElement("canvas");
+    cinemaCanvas.width = 1280;
+    cinemaCanvas.height = 720;
+    const ctx = cinemaCanvas.getContext("2d");
+    let animId = null;
+    let startTime = performance.now();
+
+    function renderCinemaFrame(now) {
+      const elapsed = (now - startTime) / 1000;
+      ctx.fillStyle = "#06060a";
+      ctx.fillRect(0, 0, cinemaCanvas.width, cinemaCanvas.height);
+
+      // Animated crimson & nebula glow
+      const pulse = Math.sin(elapsed * 2.2) * 60 + 260;
+      const grad = ctx.createRadialGradient(640, 360, 30, 640, 360, pulse + 220);
+      grad.addColorStop(0, "rgba(255, 42, 61, 0.55)");
+      grad.addColorStop(0.5, "rgba(120, 25, 175, 0.25)");
+      grad.addColorStop(1, "rgba(5, 5, 10, 0)");
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, cinemaCanvas.width, cinemaCanvas.height);
+
+      // Sweeping laser line
+      const sweepX = ((elapsed * 420) % (cinemaCanvas.width + 400)) - 200;
+      ctx.strokeStyle = "rgba(255, 65, 85, 0.7)";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(sweepX, 120);
+      ctx.lineTo(sweepX + 240, 600);
+      ctx.stroke();
+
+      // Title overlay
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "900 54px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText(activeTitle, 640, 355);
+
+      ctx.fillStyle = "#ff4d5e";
+      ctx.font = "700 20px sans-serif";
+      ctx.fillText("POKO FLIX LIVE STREAM • 1080p HD", 640, 405);
+
+      ctx.fillStyle = "rgba(255,255,255,0.65)";
+      ctx.font = "600 18px monospace";
+      const mins = String(Math.floor(elapsed / 60)).padStart(2, "0");
+      const secs = String(Math.floor(elapsed % 60)).padStart(2, "0");
+      ctx.fillText(`00:${mins}:${secs}`, 640, 450);
+
+      animId = requestAnimationFrame(renderCinemaFrame);
+    }
+
+    const cinemaStream = cinemaCanvas.captureStream(30);
+
+    // Render Cards
     const carousel = document.getElementById("trendingCarousel");
     function renderCards() {
       const q = document.getElementById("searchInput").value.trim().toLowerCase();
@@ -774,29 +798,63 @@
     const playerTitle = document.getElementById("playerTitle");
     const playerStatus = document.getElementById("playerStatus");
 
-    function openPlayer(title, url) {
+    function startCinemaStream(title) {
+      activeTitle = title;
+      startTime = performance.now();
+      if (!animId) animId = requestAnimationFrame(renderCinemaFrame);
+
+      pokoVideo.removeAttribute("src");
+      pokoVideo.load();
+      pokoVideo.srcObject = cinemaStream;
+      pokoVideo.muted = true;
+      pokoVideo.play().then(() => {
+        playerStatus.textContent = "Playing live cinema stream";
+      }).catch(() => {
+        playerStatus.textContent = "Click ▶ on video controls to start";
+      });
+    }
+
+    function openPlayer(title, url = "") {
       playerTitle.textContent = `Now Playing — ${title}`;
-      playerStatus.textContent = "Loading stream...";
       playerModal.classList.add("open");
       playerModal.setAttribute("aria-hidden", "false");
 
-      pokoVideo.src = url;
-      pokoVideo.load();
-      pokoVideo.play().then(() => {
-        playerStatus.textContent = "Playing";
-      }).catch(() => {
-        // Browser autoplay policy fallback: user can click play directly on controls
-        playerStatus.textContent = "Click ▶ on video to start";
-      });
+      if (url) {
+        if (animId) {
+          cancelAnimationFrame(animId);
+          animId = null;
+        }
+        pokoVideo.srcObject = null;
+        pokoVideo.src = url;
+        pokoVideo.load();
+        pokoVideo.play().then(() => {
+          playerStatus.textContent = "Playing external stream";
+        }).catch(() => {
+          playerStatus.textContent = "Click ▶ on video controls to start";
+        });
+      } else {
+        startCinemaStream(title);
+      }
     }
 
     function closePlayer() {
       pokoVideo.pause();
+      pokoVideo.srcObject = null;
       pokoVideo.removeAttribute("src");
       pokoVideo.load();
+      if (animId) {
+        cancelAnimationFrame(animId);
+        animId = null;
+      }
       playerModal.classList.remove("open");
       playerModal.setAttribute("aria-hidden", "true");
     }
+
+    pokoVideo.addEventListener("error", () => {
+      const errCode = pokoVideo.error ? pokoVideo.error.code : "unknown";
+      playerStatus.textContent = `External URL failed (code ${errCode}) — switching to Cinema Stream`;
+      startCinemaStream(activeTitle);
+    });
 
     document.getElementById("playNowBtn").addEventListener("click", () => {
       openPlayer(CATALOG[0].title, CATALOG[0].videoUrl);
@@ -804,11 +862,8 @@
 
     document.getElementById("heroMyListBtn").addEventListener("click", () => {
       const first = CATALOG[0];
-      if (myList.has(first.id)) {
-        myList.delete(first.id);
-      } else {
-        myList.add(first.id);
-      }
+      if (myList.has(first.id)) myList.delete(first.id);
+      else myList.add(first.id);
       renderCards();
     });
 
@@ -824,8 +879,8 @@
       openPlayer("Custom Stream", customUrl);
     });
 
-    pokoVideo.addEventListener("error", () => {
-      playerStatus.textContent = "Stream failed to load — check URL or CORS.";
+    document.getElementById("useCinemaStreamBtn").addEventListener("click", () => {
+      startCinemaStream(activeTitle);
     });
 
     // Sidebar filter tabs
@@ -834,12 +889,7 @@
         document.querySelectorAll("#sidebarNav .nav-item").forEach((el) => el.classList.remove("active"));
         btn.classList.add("active");
         currentFilter = btn.dataset.filter;
-        const labels = {
-          all: "Trending Now >",
-          movie: "Movies >",
-          series: "Series >",
-          mylist: "My List >"
-        };
+        const labels = { all: "Trending Now >", movie: "Movies >", series: "Series >", mylist: "My List >" };
         document.getElementById("sectionHeading").textContent = labels[currentFilter];
         renderCards();
       });
@@ -849,23 +899,6 @@
     const introOverlay = document.getElementById("intro-overlay");
     const skipIntroBtn = document.getElementById("skipIntroBtn");
     const replayIntroBtn = document.getElementById("replayIntroBtn");
-
-    function playSubDrop() {
-      try {
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = "sine";
-        osc.frequency.setValueAtTime(130, ctx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(36, ctx.currentTime + 1.1);
-        gain.gain.setValueAtTime(0.22, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.15);
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start();
-        osc.stop(ctx.currentTime + 1.2);
-      } catch (_) {}
-    }
 
     function dismissIntro() {
       introOverlay.classList.add("hidden");
@@ -879,7 +912,6 @@
 
     replayIntroBtn.addEventListener("click", () => {
       introOverlay.classList.remove("hidden");
-      playSubDrop();
       clearTimeout(introTimer);
       introTimer = setTimeout(dismissIntro, 2600);
     });
